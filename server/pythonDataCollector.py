@@ -73,18 +73,13 @@ def start_collector():
                     sys.stderr.flush()
                     if location == 'home':
                         now = datetime.now()
-                        sys.stderr.write(f"DEBUG: now: {now}\n")
-                        sys.stderr.flush()
-                        sys.stderr.write(f"lastRunTime: {lastRunTime}\n")
-                        sys.stderr.flush()
                         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
-                            # lastRunTime = now
-                            cursor = conn_db.cursor(dictionary=True)  # returns rows as dicts
+                            cursor = conn_db.cursor(dictionary=True)
                             week_query = f"""
-                                SELECT payload 
-                                FROM {db_config['database']}.sumpData 
-                                WHERE STR_TO_DATE(payload->>'$.datetime', '%Y-%m-%d %H:%M:%S') >= NOW() - INTERVAL 7 DAY
-                            """
+                                                    SELECT payload 
+                                                    FROM {db_config['database']}.sumpData 
+                                                    WHERE STR_TO_DATE(payload->>'$.datetime', '%Y-%m-%d %H:%M:%S') >= NOW() - INTERVAL 7 DAY
+                                                """
                             cursor.execute(week_query)
                             rows = cursor.fetchall()
                             weekly_data_list = [json.loads(row['payload']) for row in rows]
@@ -92,13 +87,15 @@ def start_collector():
 
                             url = "https://api.cl1p.net/frothbeast"
                             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+                            # Using 'text/plain' for raw body upload
                             headers = {
-                                # "Content-Type": "application/x-www-form-urlencoded",
                                 "Content-Type": "text/plain",
                                 "cl1papitoken": cl1pToken
                             }
 
                             try:
+                                # Send as raw string data
                                 response = requests.post(
                                     url,
                                     data=weekly_json_output,
@@ -106,24 +103,25 @@ def start_collector():
                                     verify=False
                                 )
 
-                                # if response.status_code == 200:
+                                # Accept any success code (200-299)
                                 if 200 <= response.status_code < 300:
                                     lastRunTime = now
-                                    sys.stderr.write("Successfully pushed data to cl1p.net")
-                                    sys.stderr.flush()
+                                    sys.stderr.write(f"Successfully pushed to cl1p.net. Response: {response.text}\n")
                                 else:
-                                    sys.stderr.write(f"Failed to push data. Status code: {response.status_code}, Response: {response.text}")
-                                    sys.stderr.flush()
-
-                            except Exception as e:
-                                sys.stderr.write(f"An error occurred during the upload: {e}")
+                                    # This will now show the REAL error from cl1p.net
+                                    sys.stderr.write(
+                                        f"Failed to push data. Status code: {response.status_code}, API Response: {response.text}\n")
                                 sys.stderr.flush()
 
-                    sys.stderr.write(f"Inserted into {db_config['database']}.sumpData with timestamp and duty")
+                            except Exception as e:
+                                sys.stderr.write(f"An error occurred during the upload: {e}\n")
+                                sys.stderr.flush()
+
+                        # This was likely being accidentally captured in your error logs
+                    sys.stderr.write(f"LOCAL DB: Inserted into {db_config['database']}.sumpData\n")
                     sys.stderr.flush()
                     cursor.close()
                     conn_db.close()
-
         except Exception as e:
             sys.stderr.write(f"Error: {e}")
             sys.stderr.flush()
