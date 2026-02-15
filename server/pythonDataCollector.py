@@ -92,15 +92,14 @@ def start_collector():
                             url = "https://api.cl1p.net/frothbeast"
                             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
                             headers = {
-                                "Content-Type": "text/html; charset=UTF-8",
-                                "cl1papitoken": "YOUR_TOKEN"  # Replace with your actual token
+                                "Content-Type": "application/x-www-form-urlencoded",
+                                "cl1papitoken": "YOUR_TOKEN"
                             }
 
                             try:
-                                # verify=False is the equivalent of curl -k
                                 response = requests.post(
                                     url,
-                                    data=weekly_json_output,
+                                    data={'content': weekly_json_output},
                                     headers=headers,
                                     verify=False
                                 )
