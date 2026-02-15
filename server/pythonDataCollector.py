@@ -45,7 +45,8 @@ def start_collector():
                 if data:
                     decoded_data = data.decode('ascii').strip()
                     print(f"Received {decoded_data}")
-
+                    sys.stderr.write(f"DEBUG:Received {decoded_data}\n")
+                    sys.stderr.flush()
                     # 1. Parse the incoming JSON string into a dictionary
                     payload_dict = json.loads(decoded_data)
 
@@ -68,7 +69,6 @@ def start_collector():
                     sys.stderr.write(f"DEBUG: Current location environment variable: {location}\n")
                     sys.stderr.flush()
                     if location == 'home':
-
                         now = datetime.now()
                         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
                             lastRunTime = now
