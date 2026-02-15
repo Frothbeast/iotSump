@@ -14,7 +14,6 @@ import requests
 cwd = os.getcwd()
 print(f"INFO: Current Working Directory: {cwd}", file=sys.stderr)
 sys.stderr.flush()
-lastRunTime = datetime.now()
 load_dotenv()
 
 BIND_HOST = os.getenv('BIND_HOST', '0.0.0.0')
@@ -71,6 +70,7 @@ def start_collector():
                     if location == 'home':
                         now = datetime.now()
                         sys.stderr.write(f"DEBUG: now: {now}\n")
+                        sys.stderr.flush()
                         sys.stderr.write(f"DEBUG: lastRunTime: {lastRunTime}\n")
                         sys.stderr.flush()
                         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
@@ -107,14 +107,17 @@ def start_collector():
                                     print(f"Failed to push data. Status code: {response.status_code}")
 
                             except Exception as e:
-                                print(f"An error occurred during the upload: {e}")
+                                sys.stderr.write(f"An error occurred during the upload: {e}")
+                                sys.stderr.flush()
 
-                    print(f"Inserted into {db_config['database']}.sumpData with timestamp and duty")
+                    sys.stderr.write(f"Inserted into {db_config['database']}.sumpData with timestamp and duty")
+                    sys.stderr.flush()
                     cursor.close()
                     conn_db.close()
 
         except Exception as e:
-            print(f"Error: {e}")
+            sys.stderr.write(f"Error: {e}")
+            sys.stderr.flush()
             time.sleep(2)
 
 if __name__ == "__main__":
