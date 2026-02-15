@@ -99,12 +99,6 @@ def start_collector():
                             }
 
                             try:
-                                # response = requests.post(
-                                #     url,
-                                #     data={'content': weekly_json_output},
-                                #     headers=headers,
-                                #     verify=False
-                                # )
                                 response = requests.post(
                                     url,
                                     data=weekly_json_output,
