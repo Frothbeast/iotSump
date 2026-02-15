@@ -14,7 +14,7 @@ import urllib3
 import subprocess
 import sys
 
-lastRunTime = datetime.now()
+lastRunTime = None
 load_dotenv()
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
@@ -44,7 +44,6 @@ def get_sump_data():
     if location == 'work':
         now = datetime.now()
         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
-            lastRunTime = now
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             url = "https://api.cl1p.net/frothbeast"
             try:
@@ -61,6 +60,7 @@ def get_sump_data():
                             query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
                             cursor.execute(query, (json.dumps(item),))
                         conn.commit()
+                        lastRunTime = now
                         sys.stderr.write(
                             f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows from cl1p\n")
                         sys.stderr.flush()
