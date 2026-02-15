@@ -65,7 +65,10 @@ def start_collector():
                     query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
                     cursor.execute(query, (json.dumps(payload_dict),))
                     conn_db.commit()
+                    sys.stderr.write(f"DEBUG: Current location environment variable: {location}\n")
+                    sys.stderr.flush()
                     if location == 'home':
+
                         now = datetime.now()
                         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
                             lastRunTime = now
