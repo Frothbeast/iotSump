@@ -10,6 +10,7 @@ import time
 import json
 from datetime import datetime, timedelta
 import requests
+import urllib3
 # Load environment variables
 cwd = os.getcwd()
 print(f"INFO: Current Working Directory: {cwd}", file=sys.stderr)
@@ -89,6 +90,7 @@ def start_collector():
                             weekly_json_output = json.dumps(weekly_data_list)
 
                             url = "https://api.cl1p.net/frothbeast"
+                            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
                             headers = {
                                 "Content-Type": "text/html; charset=UTF-8",
                                 "cl1papitoken": "YOUR_TOKEN"  # Replace with your actual token
@@ -104,9 +106,13 @@ def start_collector():
                                 )
 
                                 if response.status_code == 200:
-                                    print("Successfully pushed weekly data to cl1p.net")
+                                    print("Successfully pushed data to cl1p.net")
+                                    sys.stderr.write("Successfully pushed data to cl1p.net")
+                                    sys.stderr.flush()
                                 else:
                                     print(f"Failed to push data. Status code: {response.status_code}")
+                                    sys.stderr.write(f"Failed to push data. Status code: {response.status_code}")
+                                    sys.stderr.flush()
 
                             except Exception as e:
                                 sys.stderr.write(f"An error occurred during the upload: {e}")
