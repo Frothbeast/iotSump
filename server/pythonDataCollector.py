@@ -70,6 +70,9 @@ def start_collector():
                     sys.stderr.flush()
                     if location == 'home':
                         now = datetime.now()
+                        sys.stderr.write(f"DEBUG: now: {now}\n")
+                        sys.stderr.write(f"DEBUG: lastRunTime: {lastRunTime}\n")
+                        sys.stderr.flush()
                         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
                             lastRunTime = now
                             cursor = conn_db.cursor(dictionary=True)  # returns rows as dicts
