@@ -88,22 +88,19 @@ def start_collector():
                             url = "https://api.cl1p.net/frothbeast"
                             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-                            # Using 'text/plain' for raw body upload
                             headers = {
                                 "Content-Type": "text/plain",
                                 "cl1papitoken": cl1pToken
                             }
 
                             try:
-                                # Send as raw string data
-                                response = requests.post(
+                                response = requests.put(
                                     url,
                                     data=weekly_json_output,
                                     headers=headers,
                                     verify=False
                                 )
 
-                                # Accept any success code (200-299)
                                 if 200 <= response.status_code < 300:
                                     lastRunTime = now
                                     sys.stderr.write(f"Successfully pushed to cl1p.net. Response: {response.text}\n")
