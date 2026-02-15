@@ -25,23 +25,24 @@ export function useSumpData(hours) {
         const setupInterval = () => {
             if (interval) clearInterval(interval);
             
-            // If tab is visible, 1 second. If hidden, 60 seconds.
+            // Poll at 1s if visible, 60s if hidden to save MSI server resources
             const pollRate = document.visibilityState === 'visible' ? 1000 : 60000;
-            
             interval = setInterval(fetchData, pollRate);
         };
+
+        // Initial fetch and start polling
         fetchData();
         setupInterval();
-        const handleVisibility = () => {
-            console.log(`Visibility changed to: ${document.visibilityState}. Adjusting poll rate.`);
+
+        const handleVisibilityChange = () => {
             setupInterval();
         };
 
-        document.addEventListener("visibilitychange", handleVisibility);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
             clearInterval(interval);
-            document.removeEventListener("visibilitychange", handleVisibility);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, [hours]);
 

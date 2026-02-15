@@ -78,7 +78,7 @@ def start_collector():
                         sys.stderr.write(f"lastRunTime: {lastRunTime}\n")
                         sys.stderr.flush()
                         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
-                            lastRunTime = now
+                            # lastRunTime = now
                             cursor = conn_db.cursor(dictionary=True)  # returns rows as dicts
                             week_query = f"""
                                 SELECT payload 
@@ -93,19 +93,28 @@ def start_collector():
                             url = "https://api.cl1p.net/frothbeast"
                             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
                             headers = {
-                                "Content-Type": "application/x-www-form-urlencoded",
+                                # "Content-Type": "application/x-www-form-urlencoded",
+                                "Content-Type": "text/plain",
                                 "cl1papitoken": cl1pToken
                             }
 
                             try:
+                                # response = requests.post(
+                                #     url,
+                                #     data={'content': weekly_json_output},
+                                #     headers=headers,
+                                #     verify=False
+                                # )
                                 response = requests.post(
                                     url,
-                                    data={'content': weekly_json_output},
+                                    data=weekly_json_output,
                                     headers=headers,
                                     verify=False
                                 )
 
-                                if response.status_code == 200:
+                                # if response.status_code == 200:
+                                if 200 <= response.status_code < 300:
+                                    lastRunTime = now
                                     sys.stderr.write("Successfully pushed data to cl1p.net")
                                     sys.stderr.flush()
                                 else:
