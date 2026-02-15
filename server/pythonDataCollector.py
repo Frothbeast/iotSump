@@ -15,7 +15,7 @@ cwd = os.getcwd()
 print(f"INFO: Current Working Directory: {cwd}", file=sys.stderr)
 sys.stderr.flush()
 load_dotenv()
-
+lastRunTime = None
 BIND_HOST = os.getenv('BIND_HOST', '0.0.0.0')
 PORT = int(os.getenv('COLLECTOR_PORT', 1883))
 location = os.getenv('LOCATION')
@@ -36,7 +36,7 @@ def start_collector():
     server_socket.listen(5)
 
     print(f"Monitoring port {PORT} for incoming raw ASCII data...")
-
+    global lastRunTime
     lastRunTime = None
 
     while True:
