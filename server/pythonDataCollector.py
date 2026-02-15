@@ -36,6 +36,9 @@ def start_collector():
     server_socket.listen(5)
 
     print(f"Monitoring port {PORT} for incoming raw ASCII data...")
+
+    lastRunTime = None
+
     while True:
         try:
             conn, addr = server_socket.accept()
@@ -69,9 +72,7 @@ def start_collector():
                     sys.stderr.flush()
                     if location == 'home':
                         now = datetime.now()
-                        sys.stderr.write(f"DEBUG: now: {now}\n")
-                        sys.stderr.flush()
-                        sys.stderr.write(f"DEBUG: lastRunTime: {lastRunTime}\n")
+                        sys.stderr.write(f"DEBUG: now: {now} lastRunTime: {lastRunTime}\n")
                         sys.stderr.flush()
                         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
                             lastRunTime = now
