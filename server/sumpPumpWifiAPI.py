@@ -40,6 +40,7 @@ def serve(path):
 @app.route('/api/sumpData', methods=['GET'])
 def get_sump_data():
     global lastRunTime
+    global location
     if location == 'work':
         now = datetime.now()
         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
