@@ -29,12 +29,12 @@ sudo ufw allow 5000/tcp
 
 cd /opt/IOTServer/server
 $PM2_BIN delete "iot-collector" || true
-$PM2_BIN start venv/bin/python --name "iot-collector" -- pythonDataCollector.py
+$PM2_BIN start pythonDataCollector.py --name "iot-collector" --interpreter venv/bin/python
 
 $PM2_BIN delete "iot-api" || true
-$PM2_BIN start venv/bin/python --name "iot-api" -- sumpPumpWifiAPI.py
+$PM2_BIN start sumpPumpWifiAPI.py --name "iot-api" --interpreter venv/bin/python
 
 $PM2_BIN delete "iot-frontend" || true
-/usr/local/bin/pm2 start "npx serve -s /opt/IOTServer/client/build -l 3000" --name "iot-frontend"
+$PM2_BIN start "npx serve -s /opt/IOTServer/client/build -l 3000" --name "iot-frontend"
 $PM2_BIN save
 cd ..
