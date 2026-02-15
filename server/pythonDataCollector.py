@@ -20,6 +20,7 @@ lastRunTime = None
 BIND_HOST = os.getenv('BIND_HOST', '0.0.0.0')
 PORT = int(os.getenv('COLLECTOR_PORT', 1883))
 location = os.getenv('LOCATION')
+cl1pToken = os.getenv('CL1P_TOKEN')
 
 db_config = {
     'host': os.getenv('DB_HOST'),
@@ -93,7 +94,7 @@ def start_collector():
                             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
                             headers = {
                                 "Content-Type": "application/x-www-form-urlencoded",
-                                "cl1papitoken": "YOUR_TOKEN"
+                                "cl1papitoken": cl1pToken
                             }
 
                             try:
@@ -105,12 +106,10 @@ def start_collector():
                                 )
 
                                 if response.status_code == 200:
-                                    print("Successfully pushed data to cl1p.net")
                                     sys.stderr.write("Successfully pushed data to cl1p.net")
                                     sys.stderr.flush()
                                 else:
-                                    print(f"Failed to push data. Status code: {response.status_code}")
-                                    sys.stderr.write(f"Failed to push data. Status code: {response.status_code}")
+                                    sys.stderr.write(f"Failed to push data. Status code: {response.status_code}, Response: {response.text}")
                                     sys.stderr.flush()
 
                             except Exception as e:
