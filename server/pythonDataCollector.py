@@ -37,7 +37,6 @@ def start_collector():
 
     print(f"Monitoring port {PORT} for incoming raw ASCII data...")
     global lastRunTime
-    lastRunTime = None
 
     while True:
         try:
@@ -72,7 +71,9 @@ def start_collector():
                     sys.stderr.flush()
                     if location == 'home':
                         now = datetime.now()
-                        sys.stderr.write(f"DEBUG: now: {now} lastRunTime: {lastRunTime}\n")
+                        sys.stderr.write(f"DEBUG: now: {now}\n")
+                        sys.stderr.flush()
+                        sys.stderr.write(f"lastRunTime: {lastRunTime}\n")
                         sys.stderr.flush()
                         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
                             lastRunTime = now
