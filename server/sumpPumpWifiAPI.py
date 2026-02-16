@@ -53,33 +53,30 @@ def get_sump_data():
             cl1pToken = os.getenv('CL1P_TOKEN')
             headers = {"cl1papitoken": cl1pToken}
             try:
-                # result = subprocess.run(["curl", "-k", "-L", url], capture_output=True, text=True)
-                # if result.returncode == 0:
-                #     data = result.stdout
                 response = requests.get(url, headers=headers, verify=False)
                 if response.status_code == 200:
                     data = response.text
                     sys.stderr.write(f"DEBUG: Data retrieved successfully from cl1p: {data}\n")
                     sys.stderr.flush()
-                    # try:
-                    #     cl1p_payloads = json.loads(data)
-                    #     conn = mysql.connector.connect(**db_config)
-                    #     cursor = conn.cursor()
-                    #     for item in cl1p_payloads:
-                    #         query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
-                    #         cursor.execute(query, (json.dumps(item),))
-                    #     conn.commit()
-                    #     lastRunTime = now
-                    #     sys.stderr.write(
-                    #         f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows from cl1p\n")
-                    #     sys.stderr.flush()
-                    # except json.JSONDecodeError:
-                    #     sys.stderr.write("ERROR: Failed to decode JSON from cl1p\n")
-                    # except mysql.connector.Error as err:
-                    #     sys.stderr.write(f"DATABASE ERROR: {err}\n")
-                    # finally:
-                    #     if 'cursor' in locals(): cursor.close()
-                    #     if 'conn' in locals(): conn.close()
+                    try:
+                        cl1p_payloads = json.loads(data)
+                        conn = mysql.connector.connect(**db_config)
+                        cursor = conn.cursor()
+                        for item in cl1p_payloads:
+                            query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
+                            cursor.execute(query, (json.dumps(item),))
+                        conn.commit()
+                        lastRunTime = now
+                        sys.stderr.write(
+                            f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows from cl1p\n")
+                        sys.stderr.flush()
+                    except json.JSONDecodeError:
+                        sys.stderr.write("ERROR: Failed to decode JSON from cl1p\n")
+                    except mysql.connector.Error as err:
+                        sys.stderr.write(f"DATABASE ERROR: {err}\n")
+                    finally:
+                        if 'cursor' in locals(): cursor.close()
+                        if 'conn' in locals(): conn.close()
                     lastRunTime = now
                     sys.stderr.flush()
                 else:

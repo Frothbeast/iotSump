@@ -75,17 +75,19 @@ def start_collector():
                     if location == 'home':
                         now = datetime.now()
                         # if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
-                        if lastRunTime is None or now >= (lastRunTime + timedelta(seconds=30)):
-                            # cursor = conn_db.cursor(dictionary=True)
-                            # week_query = f"""
-                            #                         SELECT payload
-                            #                         FROM {db_config['database']}.sumpData
-                            #                         WHERE STR_TO_DATE(payload->>'$.datetime', '%Y-%m-%d %H:%M:%S') >= NOW() - INTERVAL 7 DAY
-                            #                     """
-                            # cursor.execute(week_query)
-                            # rows = cursor.fetchall()
-                            # weekly_data_list = [json.loads(row['payload']) for row in rows]
-                            # weekly_json_output = json.dumps(weekly_data_list)
+                        if lastRunTime is None or now >= (lastRunTime + timedelta(minutes=2)):
+                            # Fetch 7 days of data instead of "hello"
+                            cursor_fetch = conn_db.cursor(dictionary=True)
+                            week_query = f"""
+                                SELECT payload 
+                                FROM {db_config['database']}.sumpData 
+                                WHERE STR_TO_DATE(payload->>'$.datetime', '%%Y-%%m-%%d %%H:%%i:%%s') >= NOW() - INTERVAL 7 DAY
+                            """
+                            cursor_fetch.execute(week_query)
+                            rows = cursor_fetch.fetchall()
+                            weekly_data_list = [json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload'] for row in rows]
+                            weekly_json_output = json.dumps(weekly_data_list)
+                            cursor_fetch.close()
 
                             url = "https://api.cl1p.net/frothbeast"
                             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -96,19 +98,13 @@ def start_collector():
                             }
 
                             try:
-                                # response = requests.put(
-                                #     url,
-                                #     data=weekly_json_output,
-                                #     headers=headers,
-                                #     verify=False
-                                # )
-                                response = requests.post(url, data="hello", headers=headers, verify=False)
+                                # response = requests.post(url, data="hello", headers=headers, verify=False)
+                                response = requests.post(url, data=weekly_json_output, headers=headers, verify=False)
 
                                 if 200 <= response.status_code < 300:
                                     lastRunTime = now
-                                    sys.stderr.write(f"Successfully pushed to cl1p.net. Response: {response.text}\n")
+                                    sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} items to cl1p.net. Status: {response.status_code}\n")
                                 else:
-                                    # This will now show the REAL error from cl1p.net
                                     sys.stderr.write(
                                         f"Failed to push data. Status code: {response.status_code}, API Response: {response.text}\n")
                                 sys.stderr.flush()
@@ -117,11 +113,13 @@ def start_collector():
                                 sys.stderr.write(f"An error occurred during the upload: {e}\n")
                                 sys.stderr.flush()
 
-                        # This was likely being accidentally captured in your error logs
                     sys.stderr.write(f"LOCAL DB: Inserted into {db_config['database']}.sumpData\n")
                     sys.stderr.flush()
                     cursor.close()
                     conn_db.close()
+        except KeyboardInterrupt:
+             sys.stderr.write("Shutdown signal received.\n")
+             break
         except Exception as e:
             sys.stderr.write(f"Error: {e}")
             sys.stderr.flush()
