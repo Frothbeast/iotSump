@@ -9,9 +9,20 @@ TARGET_DIR="/opt/IOTServer"
 
 ## If using WSL 
 ## wsl --install Ubuntu
-## sudo apt update && sudo apt install openssh-server -y
-## just ip addr to find the IP address
-## go to users/frothbeast/.ssh/known_hosts/  get rid of all lines(keys) with this IP address
+## exit
+## wsl --set-default Ubuntu
+## wsl --shutdown
+## Ubuntu
+## sudo apt update
+## sudo DEBIAN_FRONTEND=noninteractive apt install openssh-server -y
+## printf "[boot]\nsystemd=true\n" | sudo tee /etc/wsl.conf
+## sudo systemctl enable --now ssh
+## exit
+## wsl --shutdown
+## Start-Process "wsl.exe" -ArgumentList "-d Ubuntu", "--exec", "sleep", "infinity" -WindowStyle Hidden
+## ip addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'
+## NOW YOU CAN SSH in with the IP address that is shown
+## go to users/frothbeast/.ssh/known_hosts/  get rid of all lines(keys) with this IP address if it is an issue
 ## skip next comment section
 
 ## If not using WSL: use USB stick to install ubuntu DO NOT USE GIT SSH KEY UNLESS YOU LIKE FAILING
@@ -31,13 +42,32 @@ TARGET_DIR="/opt/IOTServer"
 ## log in with laptop from local LAN
 ## from a local LAN computer, go to users/frothbeast/.ssh/known_hosts/  get rid of all lines(keys) with this IP address
 
-# now cd /home/frothbeast/
+
+
+# now cd /home/frothbeast/ or if in WSL start at default directory
 # copy the contents of this file into sudo nano bootstrap.sh
 # cntrl s cntrl x
 # sudo chmod +x bootstrap.sh
 # sudo ./bootstrap.sh
+# follow the directions from the echo at the end of that execution
 
-#update Linux
+NEW_USER="frothbeast"
+WSL_DISTRO_NAME="Ubuntu"
+if [[ -n "$WSL_DISTRO_NAME" ]] || grep -iq "Microsoft" /proc/version; then
+    echo "WSL environment detected ($WSL_DISTRO_NAME). Starting setup..."
+    sudo adduser --gecos "" "$NEW_USER"
+    sudo usermod -aG sudo "$NEW_USER"
+    sudo bash -c "printf '[user]\ndefault=$NEW_USER\n' > /etc/wsl.conf"
+    echo "--------------------------------------------------------"
+    echo "WSL setup complete! To apply changes:"
+    echo "1. Exit this terminal."
+    echo "2. Run 'wsl --terminate $WSL_DISTRO_NAME' in PowerShell."
+    echo "3. Re-open your WSL distribution."
+    echo "--------------------------------------------------------"
+else
+    echo "This is NOT a WSL environment."
+fi
+
 sudo apt update
 sudo apt upgrade -y
 # Install Git and pull repo
@@ -51,15 +81,15 @@ if [ ! -d "$TARGET_DIR" ]; then
 else
     echo "Directory $TARGET_DIR already exists. Skipping clone."
 fi
-
 sudo chown -R frothbeast:frothbeast /opt/IOTServer
+cd "$TARGET_DIR" && sudo chmod +x scripts/setup.sh && sudo chmod +x scripts/setup_db.sh
 
 #Tell self to execute the main setup script after creating .env files
 echo
 echo
 echo "----------------------------------------------------------"
 echo "create .env files in server and client using .env.example"
-echo "then go to $TARGET_DIR/scripts/ and run .setup.sh"
+echo "then go to $TARGET_DIR/scripts/ and run ./setup.sh"
 
-cd "$TARGET_DIR" && sudo chmod +x scripts/setup.sh && sudo chmod +x scripts/setup_db.sh
+
 

@@ -1,3 +1,4 @@
+# pythonDataCollector.py
 #
 # This file captures IOT data from the network and puts it in the database
 #
@@ -8,24 +9,29 @@ import socket
 import mysql.connector
 import time
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+import requests
+import urllib3
 
 # Load environment variables
 cwd = os.getcwd()
 print(f"INFO: Current Working Directory: {cwd}", file=sys.stderr)
 sys.stderr.flush()
-
 load_dotenv()
-
+lastRunTime = None
 BIND_HOST = os.getenv('BIND_HOST', '0.0.0.0')
 PORT = int(os.getenv('COLLECTOR_PORT', 1883))
+location = os.getenv('LOCATION')
+cl1pToken = os.getenv('CL1P_TOKEN')
 
 db_config = {
     'host': os.getenv('DB_HOST'),
     'user': os.getenv('DB_USER'),
     'password': os.getenv('DB_PASS'),
-    'database': os.getenv('DB_NAME')
+    'database': os.getenv('DB_NAME'),
 }
+
+
 def start_collector():
     # Regular TCP socket without any SSL wrapping
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -36,6 +42,8 @@ def start_collector():
     server_socket.listen(5)
 
     print(f"Monitoring port {PORT} for incoming raw ASCII data...")
+    global lastRunTime
+
     while True:
         try:
             conn, addr = server_socket.accept()
@@ -43,34 +51,80 @@ def start_collector():
                 data = conn.recv(1024)
                 if data:
                     decoded_data = data.decode('ascii').strip()
-                    print(f"Received {decoded_data}")
-
-                    # 1. Parse the incoming JSON string into a dictionary
                     payload_dict = json.loads(decoded_data)
-
-                    # 2. Add the current timestamp
                     payload_dict['datetime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                    # 3. Calculate duty cycle (with +1 safety to prevent division by zero)
+                    # Duty cycle calculation
                     t_on = int(payload_dict.get("timeOn", 0))
                     t_off = int(payload_dict.get("timeOff", 0))
                     payload_dict['duty'] = str(round(100 * t_on / (t_on + t_off + 1)))
 
-                    # 4. Establish DB connection
                     conn_db = mysql.connector.connect(**db_config)
                     cursor = conn_db.cursor()
-
-                    # 5. Insert the MODIFIED dictionary as a JSON string
                     query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
                     cursor.execute(query, (json.dumps(payload_dict),))
                     conn_db.commit()
-                    print(f"Inserted into {db_config['database']}.sumpData with timestamp and duty")
+
+                    # COUPLED LOGIC: Only runs after a pump event
+                    if location == 'home':
+                        now = datetime.now()
+                        if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
+                            cursor_fetch = conn_db.cursor(dictionary=True)
+
+                            # Standard MySQL extraction for JSON values
+                            week_query = f"""
+                                SELECT payload 
+                                FROM {db_config['database']}.sumpData 
+                                WHERE payload->>'$.datetime' >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                            """
+                            # week_query = f"""
+                            #                         SELECT payload
+                            #                         FROM {db_config['database']}.sumpData
+                            #                         WHERE STR_TO_DATE(payload->>'$.datetime', '%Y-%m-%d %H:%i:%s') >= NOW() - INTERVAL 7 DAY
+                            #                     """
+                            cursor_fetch.execute(week_query)
+                            rows = cursor_fetch.fetchall()
+
+                            if rows:
+                                weekly_data_list = [
+                                    json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload']
+                                    for row in rows]
+                                # Encode objects to text string
+                                raw_text_payload = json.dumps(weekly_data_list)
+
+                                # LOG EXACT TEXT BEING SENT
+                                sys.stderr.write(f"DEBUG: Sending to cl1p: {raw_text_payload[:500]}...\n")
+                                sys.stderr.flush()
+
+                                url = "https://api.cl1p.net/frothbeast"
+                                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                                headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
+
+                                try:
+                                    response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
+                                    if 200 <= response.status_code < 300:
+                                        lastRunTime = now
+                                        sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} rows to cl1p.\n")
+                                    else:
+                                        sys.stderr.write(f"Push failed: {response.status_code} - {response.text}\n")
+                                except Exception as e:
+                                    sys.stderr.write(f"Upload error: {e}\n")
+                            else:
+                                sys.stderr.write("DEBUG: SQL returned 0 rows for the last 7 days.\n")
+
+                            cursor_fetch.close()
+
+                    sys.stderr.flush()
                     cursor.close()
                     conn_db.close()
-
+        except KeyboardInterrupt:
+            sys.stderr.write("Shutdown signal received.\n")
+            break
         except Exception as e:
-            print(f"Error: {e}")
+            sys.stderr.write(f"Error: {e}\n")
+            sys.stderr.flush()
             time.sleep(2)
+
 
 if __name__ == "__main__":
     start_collector()
