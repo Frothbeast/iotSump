@@ -54,15 +54,26 @@ def get_sump_data():
             try:
                 response = requests.get(url, headers=headers, verify=False)
 
+                # DIAGNOSTIC BLOCK START
+                sys.stderr.write(f"DEBUG: HTTP Status Code: {response.status_code}\n")
+                sys.stderr.write(f"DEBUG: Response Headers: {dict(response.headers)}\n")
+                sys.stderr.write(f"DEBUG: Content Length: {len(response.content)} bytes\n")
+                sys.stderr.flush()
+                # DIAGNOSTIC BLOCK END
+
                 if response.status_code == 200:
                     data = response.text
-                    # Check if the response actually starts with a JSON bracket
-                    sys.stderr.write(f"DEBUG: Data starts with: {data[:50]}\n")
+                    # Use repr() to see hidden characters like newlines or null bytes
+                    sys.stderr.write(f"DEBUG: Raw Data (repr): {repr(data)}\n")
                     sys.stderr.flush()
 
-                    try:
-                        # Attempt to parse
-                        cl1p_payloads = json.loads(data)
+                    if not data.strip():
+                        sys.stderr.write("ERROR: cl1p returned a 200 OK but the body is empty.\n")
+                        sys.stderr.flush()
+                        # return (this will skip the json.loads attempt)
+                    else:
+                        try:
+                            cl1p_payloads = json.loads(data)
 
                         if isinstance(cl1p_payloads, list):
                             conn = mysql.connector.connect(**db_config)
