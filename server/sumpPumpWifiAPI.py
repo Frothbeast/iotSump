@@ -29,6 +29,8 @@ db_config = {
     'database': os.getenv('DB_NAME')
 }
 
+cl1pURL= os.getenv('CL1P_URL')
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
@@ -45,7 +47,7 @@ def get_sump_data():
         now = datetime.now()
         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            url = "https://api.cl1p.net/frothbeast"
+            url = cl1pURL
             cl1pToken = os.getenv('CL1P_TOKEN')
             headers = {"cl1papitoken": cl1pToken}
             try:
