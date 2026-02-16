@@ -43,76 +43,51 @@ def serve(path):
 def get_sump_data():
     global lastRunTime
     global location
-    cl1pToken = os.getenv('CL1P_TOKEN')
-
+    cl1pToken = os.getenv('CL1P_TOKEN')  # Ensure this is in your .env
     if location == 'work':
         now = datetime.now()
         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            # Use the API endpoint instead of the browser URL
             url = "https://api.cl1p.net/frothbeast"
-            headers = {
-                "cl1papitoken": cl1pToken
-            }
+            headers = {"cl1papitoken": cl1pToken}
             try:
+                # result = subprocess.run(["curl", "-k", "-L", url], capture_output=True, text=True)
+                # if result.returncode == 0:
+                #     data = result.stdout
                 response = requests.get(url, headers=headers, verify=False)
 
-                # DIAGNOSTIC BLOCK START
-                sys.stderr.write(f"DEBUG: HTTP Status Code: {response.status_code}\n")
-                sys.stderr.write(f"DEBUG: Response Headers: {dict(response.headers)}\n")
-                sys.stderr.write(f"DEBUG: Content Length: {len(response.content)} bytes\n")
-                sys.stderr.flush()
-                # DIAGNOSTIC BLOCK END
+                sys.stderr.write(
+                    f"DEBUG: HTTP Status: {response.status_code} | Content-Type: {response.headers.get('Content-Type')}\n")
 
                 if response.status_code == 200:
                     data = response.text
-                    # Use repr() to see hidden characters like newlines or null bytes
-                    sys.stderr.write(f"DEBUG: Raw Data (repr): {repr(data)}\n")
+                    sys.stderr.write(f"DEBUG: Data retrieved successfully from cl1p: {repr(data[:100])}\n")
                     sys.stderr.flush()
-
-                    if not data.strip():
-                        sys.stderr.write("ERROR: cl1p returned a 200 OK but the body is empty.\n")
+                    try:
+                        cl1p_payloads = json.loads(data)
+                        conn = mysql.connector.connect(**db_config)
+                        cursor = conn.cursor()
+                        for item in cl1p_payloads:
+                            query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
+                            cursor.execute(query, (json.dumps(item),))
+                        conn.commit()
+                        lastRunTime = now
+                        sys.stderr.write(
+                            f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows from cl1p\n")
                         sys.stderr.flush()
-                        # return (this will skip the json.loads attempt)
-                    else:
-                        try:
-                            cl1p_payloads = json.loads(data)
-
-                            #                         if isinstance(cl1p_payloads, list):
-                            #                             conn = mysql.connector.connect(**db_config)
-                            #                             cursor = conn.cursor()
-                            #                             for item in cl1p_payloads:
-                            #                                 # Ensure item is the dictionary object before dumping to JSON
-                            #                                 query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
-                            #                                 cursor.execute(query, (json.dumps(item),))
-                            #                             conn.commit()
-                            #                             lastRunTime = now
-                            #                             sys.stderr.write(f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows\n")
-                            #                         else:
-                            #                             sys.stderr.write(f"DEBUG: Received data is not a list: {type(cl1p_payloads)}\n")
-                            if isinstance(cl1p_payloads, list):
-                                conn = mysql.connector.connect(**db_config)
-                                cursor = conn.cursor()
-                                for item in cl1p_payloads:
-                                    query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
-                                    cursor.execute(query, (json.dumps(item),))
-                                conn.commit()
-                                lastRunTime = now
-                                sys.stderr.write(
-                                    f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows\n")
-                            else:
-                                sys.stderr.write(f"DEBUG: Received data is not a list: {type(cl1p_payloads)}\n")
-                        except json.JSONDecodeError:
-                            # If JSON fails, log exactly what was received to see if it is HTML
-                            sys.stderr.write(f"ERROR: Failed to decode JSON. Raw content: {data[:200]}\n")
-                        except mysql.connector.Error as err:
-                            sys.stderr.write(f"DATABASE ERROR: {err}\n")
-                        finally:
-                            if 'cursor' in locals(): cursor.close()
-                            if 'conn' in locals(): conn.close()
+                    except json.JSONDecodeError:
+                        # sys.stderr.write("ERROR: Failed to decode JSON from cl1p\n")
+                        sys.stderr.write(f"ERROR: Failed to decode JSON. Content: {repr(data)}\n")
+                    except mysql.connector.Error as err:
+                        sys.stderr.write(f"DATABASE ERROR: {err}\n")
+                    finally:
+                        if 'cursor' in locals(): cursor.close()
+                        if 'conn' in locals(): conn.close()
+                    sys.stderr.flush()
                 else:
+                    # sys.stderr.write(f"DEBUG: Failed to retrieve data via curl. Error: {result.stderr}\n")
                     sys.stderr.write(f"DEBUG: Failed to retrieve data. Status: {response.status_code}\n")
-                sys.stderr.flush()
+                    sys.stderr.flush()
             except Exception as e:
                 sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
                 sys.stderr.flush()

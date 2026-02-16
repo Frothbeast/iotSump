@@ -94,16 +94,20 @@ def start_collector():
                             }
 
                             try:
-                                response = requests.put(
-                                    url,
-                                    data=weekly_json_output,
-                                    headers=headers,
-                                    verify=False
-                                )
+                                # response = requests.put(
+                                #     url,
+                                #     data=weekly_json_output,
+                                #     headers=headers,
+                                #     verify=False
+                                # )
+                                # Ensure data is sent as the request body
+                                response = requests.put(url, data=weekly_json_output, headers=headers, verify=False)
 
                                 if 200 <= response.status_code < 300:
                                     lastRunTime = now
-                                    sys.stderr.write(f"Successfully pushed to cl1p.net. Response: {response.text}\n")
+                                    # sys.stderr.write(f"Successfully pushed to cl1p.net. Response: {response.text}\n")
+                                    sys.stderr.write(
+                                        f"Successfully pushed {len(weekly_data_list)} items to cl1p.net. Response: {response.text}\n")
                                 else:
                                     # This will now show the REAL error from cl1p.net
                                     sys.stderr.write(
