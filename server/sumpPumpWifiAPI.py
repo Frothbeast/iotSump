@@ -41,41 +41,44 @@ def serve(path):
 def get_sump_data():
     global lastRunTime
     global location
-    cl1pToken = os.getenv('CL1P_TOKEN')  # Ensure you have this in your work .env
+    cl1pToken = os.getenv('CL1P_TOKEN')
 
     if location == 'work':
         now = datetime.now()
         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            # Use the API endpoint instead of the browser URL
             url = "https://api.cl1p.net/frothbeast"
             headers = {
                 "cl1papitoken": cl1pToken
             }
             try:
-                # Use requests.get with headers instead of subprocess/curl
                 response = requests.get(url, headers=headers, verify=False)
 
                 if response.status_code == 200:
                     data = response.text
-                    sys.stderr.write(f"DEBUG: Data retrieved successfully from cl1p: {data[:100]}...\n")
+                    # Check if the response actually starts with a JSON bracket
+                    sys.stderr.write(f"DEBUG: Data starts with: {data[:50]}\n")
                     sys.stderr.flush()
+
                     try:
+                        # Attempt to parse
                         cl1p_payloads = json.loads(data)
+
                         if isinstance(cl1p_payloads, list):
                             conn = mysql.connector.connect(**db_config)
                             cursor = conn.cursor()
-                            # Insert logic
                             for item in cl1p_payloads:
+                                # Ensure item is the dictionary object before dumping to JSON
                                 query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
                                 cursor.execute(query, (json.dumps(item),))
                             conn.commit()
                             lastRunTime = now
                             sys.stderr.write(f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows\n")
                         else:
-                            sys.stderr.write("DEBUG: cl1p data is not a list\n")
+                            sys.stderr.write(f"DEBUG: Received data is not a list: {type(cl1p_payloads)}\n")
                     except json.JSONDecodeError:
-                        sys.stderr.write("ERROR: Failed to decode JSON from cl1p\n")
+                        # If JSON fails, log exactly what was received to see if it is HTML
+                        sys.stderr.write(f"ERROR: Failed to decode JSON. Raw content: {data[:200]}\n")
                     except mysql.connector.Error as err:
                         sys.stderr.write(f"DATABASE ERROR: {err}\n")
                     finally:
@@ -87,7 +90,6 @@ def get_sump_data():
             except Exception as e:
                 sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
                 sys.stderr.flush()
-
     try:
         hours = request.args.get('hours', default=24, type=int)
         
