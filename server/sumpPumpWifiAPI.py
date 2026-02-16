@@ -88,7 +88,6 @@ def get_sump_data():
                 sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
                 sys.stderr.flush()
 
-
     try:
         hours = request.args.get('hours', default=24, type=int)
         
