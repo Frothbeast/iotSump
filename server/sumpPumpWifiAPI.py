@@ -65,15 +65,18 @@ def get_sump_data():
                     sys.stderr.flush()
                     try:
                         cl1p_payloads = json.loads(data)
-                        conn = mysql.connector.connect(**db_config)
-                        cursor = conn.cursor()
-                        for item in cl1p_payloads:
-                            query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
-                            cursor.execute(query, (json.dumps(item),))
-                        conn.commit()
-                        lastRunTime = now
-                        sys.stderr.write(
-                            f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows from cl1p\n")
+                        if isinstance(cl1p_payloads, list):
+                            conn = mysql.connector.connect(**db_config)
+                            cursor = conn.cursor()
+                            for item in cl1p_payloads:
+                                query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
+                                cursor.execute(query, (json.dumps(item),))
+                            conn.commit()
+                            lastRunTime = now
+                            sys.stderr.write(
+                                f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows from cl1p\n")
+                        else:
+                             sys.stderr.write(f"DEBUG: Received data is not a list: {type(cl1p_payloads)}\n")
                         sys.stderr.flush()
                     except json.JSONDecodeError:
                         # sys.stderr.write("ERROR: Failed to decode JSON from cl1p\n")
@@ -91,6 +94,49 @@ def get_sump_data():
             except Exception as e:
                 sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
                 sys.stderr.flush()
+#                         # return (this will skip the json.loads attempt)
+#                     else:
+#                         try:
+#                             cl1p_payloads = json.loads(data)
+#
+#                             #                         if isinstance(cl1p_payloads, list):
+#                             #                             conn = mysql.connector.connect(**db_config)
+#                             #                             cursor = conn.cursor()
+#                             #                             for item in cl1p_payloads:
+#                             #                                 # Ensure item is the dictionary object before dumping to JSON
+#                             #                                 query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
+#                             #                                 cursor.execute(query, (json.dumps(item),))
+#                             #                             conn.commit()
+#                             #                             lastRunTime = now
+#                             #                             sys.stderr.write(f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows\n")
+#                             #                         else:
+#                             #                             sys.stderr.write(f"DEBUG: Received data is not a list: {type(cl1p_payloads)}\n")
+#                             if isinstance(cl1p_payloads, list):
+#                                 conn = mysql.connector.connect(**db_config)
+#                                 cursor = conn.cursor()
+#                                 for item in cl1p_payloads:
+#                                     query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
+#                                     cursor.execute(query, (json.dumps(item),))
+#                                 conn.commit()
+#                                 lastRunTime = now
+#                                 sys.stderr.write(
+#                                     f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows\n")
+#                             else:
+#                                 sys.stderr.write(f"DEBUG: Received data is not a list: {type(cl1p_payloads)}\n")
+#                         except json.JSONDecodeError:
+#                             # If JSON fails, log exactly what was received to see if it is HTML
+#                             sys.stderr.write(f"ERROR: Failed to decode JSON. Raw content: {data[:200]}\n")
+#                         except mysql.connector.Error as err:
+#                             sys.stderr.write(f"DATABASE ERROR: {err}\n")
+#                         finally:
+#                             if 'cursor' in locals(): cursor.close()
+#                             if 'conn' in locals(): conn.close()
+#                 else:
+#                     sys.stderr.write(f"DEBUG: Failed to retrieve data. Status: {response.status_code}\n")
+#                 sys.stderr.flush()
+#             except Exception as e:
+#                 sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
+#                 sys.stderr.flush()
     try:
         hours = request.args.get('hours', default=24, type=int)
 
