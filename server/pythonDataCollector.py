@@ -48,72 +48,58 @@ def start_collector():
                 data = conn.recv(1024)
                 if data:
                     decoded_data = data.decode('ascii').strip()
-                    print(f"Received {decoded_data}")
-                    sys.stderr.write(f"DEBUG:Received {decoded_data}\n")
-                    sys.stderr.flush()
-                    # 1. Parse the incoming JSON string into a dictionary
                     payload_dict = json.loads(decoded_data)
-
-                    # 2. Add the current timestamp
                     payload_dict['datetime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                    # 3. Calculate duty cycle (with +1 safety to prevent division by zero)
+                    # Duty cycle calculation
                     t_on = int(payload_dict.get("timeOn", 0))
                     t_off = int(payload_dict.get("timeOff", 0))
                     payload_dict['duty'] = str(round(100 * t_on / (t_on + t_off + 1)))
 
-                    # 4. Establish DB connection
                     conn_db = mysql.connector.connect(**db_config)
                     cursor = conn_db.cursor()
-
-                    # 5. Insert the MODIFIED dictionary as a JSON string
                     query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
                     cursor.execute(query, (json.dumps(payload_dict),))
                     conn_db.commit()
-                    sys.stderr.write(f"DEBUG: Current location environment variable: {location}\n")
-                    sys.stderr.flush()
+
+                    # COUPLED LOGIC: Only runs after a pump event
                     if location == 'home':
                         now = datetime.now()
-                        # if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
-                        if lastRunTime is None or now >= (lastRunTime + timedelta(minutes=2)):
-                            # Fetch 7 days of data instead of "hello"
+                        if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
                             cursor_fetch = conn_db.cursor(dictionary=True)
                             week_query = f"""
-                                SELECT payload 
-                                FROM {db_config['database']}.sumpData 
-                                WHERE STR_TO_DATE(payload->>'$.datetime', '%%Y-%%m-%%d %%H:%%i:%%s') >= NOW() - INTERVAL 7 DAY
-                            """
+                                    SELECT payload 
+                                    FROM {db_config['database']}.sumpData 
+                                    WHERE STR_TO_DATE(payload->>'$.datetime', '%%Y-%%m-%%d %%H:%%i:%%s') >= NOW() - INTERVAL 7 DAY
+                                """
                             cursor_fetch.execute(week_query)
                             rows = cursor_fetch.fetchall()
-                            weekly_data_list = [json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload'] for row in rows]
-                            weekly_json_output = json.dumps(weekly_data_list)
-                            cursor_fetch.close()
+
+                            # Convert list of objects to a raw JSON text string
+                            weekly_data_list = [
+                                json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload'] for
+                                row in rows]
+                            raw_text_payload = json.dumps(weekly_data_list)
 
                             url = "https://api.cl1p.net/frothbeast"
                             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-                            headers = {
-                                "Content-Type": "text/plain",
-                                "cl1papitoken": cl1pToken
-                            }
+                            headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
 
                             try:
-                                # response = requests.post(url, data="hello", headers=headers, verify=False)
-                                response = requests.post(url, data=weekly_json_output, headers=headers, verify=False)
-
+                                # Sending as raw text
+                                response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
                                 if 200 <= response.status_code < 300:
                                     lastRunTime = now
-                                    sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} items to cl1p.net. Status: {response.status_code}\n")
+                                    sys.stderr.write(f"Successfully pushed week of data to cl1p.\n")
                                 else:
-                                    sys.stderr.write(
-                                        f"Failed to push data. Status code: {response.status_code}, API Response: {response.text}\n")
-                                sys.stderr.flush()
-
+                                    sys.stderr.write(f"Push failed: {response.status_code}\n")
                             except Exception as e:
-                                sys.stderr.write(f"An error occurred during the upload: {e}\n")
-                                sys.stderr.flush()
+                                sys.stderr.write(f"Upload error: {e}\n")
 
-                    sys.stderr.write(f"LOCAL DB: Inserted into {db_config['database']}.sumpData\n")
+                            cursor_fetch.close()
+
+                    cursor.close()
+                    conn_db.close()
                     sys.stderr.flush()
                     cursor.close()
                     conn_db.close()

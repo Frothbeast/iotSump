@@ -45,9 +45,9 @@ def get_sump_data():
     global lastRunTime
     global location
     if location == 'work':
+#         if location == 'work':
         now = datetime.now()
-        # if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
-        if lastRunTime is None or now >= (lastRunTime + timedelta(seconds=30)):
+        if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             url = "https://api.cl1p.net/frothbeast"
             cl1pToken = os.getenv('CL1P_TOKEN')
@@ -55,30 +55,40 @@ def get_sump_data():
             try:
                 response = requests.get(url, headers=headers, verify=False)
                 if response.status_code == 200:
-                    data = response.text
-                    sys.stderr.write(f"DEBUG: Data retrieved successfully from cl1p: {data}\n")
-                    sys.stderr.flush()
+                    raw_text = response.text
+
+                    # Decode the raw text string back into a Python list
                     try:
-                        cl1p_payloads = json.loads(data)
-                        conn = mysql.connector.connect(**db_config)
-                        cursor = conn.cursor()
-                        for item in cl1p_payloads:
-                            query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
-                            cursor.execute(query, (json.dumps(item),))
-                        conn.commit()
-                        lastRunTime = now
-                        sys.stderr.write(
-                            f"DEBUG: Successfully populated database with {len(cl1p_payloads)} rows from cl1p\n")
+                        cl1p_payloads = json.loads(raw_text)
+                        if isinstance(cl1p_payloads, list) and len(cl1p_payloads) > 0:
+                            conn = mysql.connector.connect(**db_config)
+                            cursor = conn.cursor()
+                            for item in cl1p_payloads:
+                                query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
+                                cursor.execute(query, (json.dumps(item),))
+                            conn.commit()
+                            lastRunTime = now
+                            sys.stderr.write(
+                                f"DEBUG: Successfully decoded and imported {len(cl1p_payloads)} rows\n")
+#                                 cursor.close()
+#                                 conn.close()
                         sys.stderr.flush()
                     except json.JSONDecodeError:
-                        sys.stderr.write("ERROR: Failed to decode JSON from cl1p\n")
+                        sys.stderr.write("ERROR: cl1p content was not valid JSON text\n")
                     except mysql.connector.Error as err:
                         sys.stderr.write(f"DATABASE ERROR: {err}\n")
                     finally:
                         if 'cursor' in locals(): cursor.close()
                         if 'conn' in locals(): conn.close()
-                    lastRunTime = now
-                    sys.stderr.flush()
+
+#                         sys.stderr.flush()
+#                     except mysql.connector.Error as err:
+#                         sys.stderr.write(f"DATABASE ERROR: {err}\n")
+#                     finally:
+#                         if 'cursor' in locals(): cursor.close()
+#                         if 'conn' in locals(): conn.close()
+#                     lastRunTime = now
+#                     sys.stderr.flush()
                 else:
                     # sys.stderr.write(f"DEBUG: Failed to retrieve data via curl. Error: {result.stderr}\n")
                     sys.stderr.write(f"DEBUG: Failed to retrieve data. Status: {response.status_code}\n")
