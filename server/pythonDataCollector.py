@@ -68,36 +68,42 @@ def start_collector():
                         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
                             cursor_fetch = conn_db.cursor(dictionary=True)
                             week_query = f"""
-                                    SELECT payload 
-                                    FROM {db_config['database']}.sumpData 
-                                    WHERE STR_TO_DATE(payload->>'$.datetime', '%%Y-%%m-%%d %%H:%%i:%%s') >= NOW() - INTERVAL 7 DAY
-                                """
+                                                    SELECT payload 
+                                                    FROM {db_config['database']}.sumpData 
+                                                    WHERE STR_TO_DATE(payload->>'$.datetime', '%Y-%m-%d %H:%i:%s') >= NOW() - INTERVAL 7 DAY
+                                                """
                             cursor_fetch.execute(week_query)
                             rows = cursor_fetch.fetchall()
 
-                            # Convert list of objects to a raw JSON text string
-                            weekly_data_list = [
-                                json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload'] for
-                                row in rows]
-                            raw_text_payload = json.dumps(weekly_data_list)
+                            if rows:
+                                weekly_data_list = [
+                                    json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload']
+                                    for row in rows]
+                                # Encode objects to text string
+                                raw_text_payload = json.dumps(weekly_data_list)
 
-                            url = "https://api.cl1p.net/frothbeast"
-                            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-                            headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
+                                # LOG EXACT TEXT BEING SENT
+                                sys.stderr.write(f"DEBUG: Sending to cl1p: {raw_text_payload[:500]}...\n")
 
-                            try:
-                                # Sending as raw text
-                                response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
-                                if 200 <= response.status_code < 300:
-                                    lastRunTime = now
-                                    sys.stderr.write(f"Successfully pushed week of data to cl1p.\n")
-                                else:
-                                    sys.stderr.write(f"Push failed: {response.status_code}\n")
-                            except Exception as e:
-                                sys.stderr.write(f"Upload error: {e}\n")
+                                url = "https://api.cl1p.net/frothbeast"
+                                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                                headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
+
+                                try:
+                                    response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
+                                    if 200 <= response.status_code < 300:
+                                        lastRunTime = now
+                                        sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} rows to cl1p.\n")
+                                    else:
+                                        sys.stderr.write(f"Push failed: {response.status_code} - {response.text}\n")
+                                except Exception as e:
+                                    sys.stderr.write(f"Upload error: {e}\n")
+                            else:
+                                sys.stderr.write("DEBUG: No data found in DB for the last 7 days.\n")
 
                             cursor_fetch.close()
 
+                    sys.stderr.flush()
                     cursor.close()
                     conn_db.close()
                     sys.stderr.flush()

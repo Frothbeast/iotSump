@@ -57,7 +57,9 @@ def get_sump_data():
                 if response.status_code == 200:
                     raw_text = response.text
 
-                    # Decode the raw text string back into a Python list
+                    # LOG EXACT TEXT RECEIVED
+                    sys.stderr.write(f"DEBUG: Received from cl1p: {raw_text[:500]}...\n")
+
                     try:
                         cl1p_payloads = json.loads(raw_text)
                         if isinstance(cl1p_payloads, list) and len(cl1p_payloads) > 0:
@@ -68,15 +70,11 @@ def get_sump_data():
                                 cursor.execute(query, (json.dumps(item),))
                             conn.commit()
                             lastRunTime = now
-                            sys.stderr.write(
-                                f"DEBUG: Successfully decoded and imported {len(cl1p_payloads)} rows\n")
-#                                 cursor.close()
-#                                 conn.close()
-                        sys.stderr.flush()
-                    except json.JSONDecodeError:
-                        sys.stderr.write("ERROR: cl1p content was not valid JSON text\n")
-                    except mysql.connector.Error as err:
-                        sys.stderr.write(f"DATABASE ERROR: {err}\n")
+                            sys.stderr.write(f"DEBUG: Successfully imported {len(cl1p_payloads)} rows\n")
+                    except json.JSONDecodeError as e:
+                        # Log the specific JSON error and the content that caused it
+                        sys.stderr.write(f"ERROR: JSON Decode Failed: {str(e)}\n")
+                        sys.stderr.write(f"OFFENDING CONTENT: {raw_text[:200]}\n")
                     finally:
                         if 'cursor' in locals(): cursor.close()
                         if 'conn' in locals(): conn.close()
