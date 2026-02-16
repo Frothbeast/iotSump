@@ -12,6 +12,7 @@ import json
 from datetime import datetime, timedelta
 import requests
 import urllib3
+
 # Load environment variables
 cwd = os.getcwd()
 print(f"INFO: Current Working Directory: {cwd}", file=sys.stderr)
@@ -29,6 +30,8 @@ db_config = {
     'password': os.getenv('DB_PASS'),
     'database': os.getenv('DB_NAME'),
 }
+
+
 def start_collector():
     # Regular TCP socket without any SSL wrapping
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -67,11 +70,18 @@ def start_collector():
                         now = datetime.now()
                         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
                             cursor_fetch = conn_db.cursor(dictionary=True)
+
+                            # Standard MySQL extraction for JSON values
                             week_query = f"""
-                                                    SELECT payload 
-                                                    FROM {db_config['database']}.sumpData 
-                                                    WHERE STR_TO_DATE(payload->>'$.datetime', '%Y-%m-%d %H:%i:%s') >= NOW() - INTERVAL 7 DAY
-                                                """
+                                SELECT payload 
+                                FROM {db_config['database']}.sumpData 
+                                WHERE payload->>'$.datetime' >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                            """
+                            # week_query = f"""
+                            #                         SELECT payload
+                            #                         FROM {db_config['database']}.sumpData
+                            #                         WHERE STR_TO_DATE(payload->>'$.datetime', '%Y-%m-%d %H:%i:%s') >= NOW() - INTERVAL 7 DAY
+                            #                     """
                             cursor_fetch.execute(week_query)
                             rows = cursor_fetch.fetchall()
 
@@ -84,6 +94,7 @@ def start_collector():
 
                                 # LOG EXACT TEXT BEING SENT
                                 sys.stderr.write(f"DEBUG: Sending to cl1p: {raw_text_payload[:500]}...\n")
+                                sys.stderr.flush()
 
                                 url = "https://api.cl1p.net/frothbeast"
                                 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -99,23 +110,21 @@ def start_collector():
                                 except Exception as e:
                                     sys.stderr.write(f"Upload error: {e}\n")
                             else:
-                                sys.stderr.write("DEBUG: No data found in DB for the last 7 days.\n")
+                                sys.stderr.write("DEBUG: SQL returned 0 rows for the last 7 days.\n")
 
                             cursor_fetch.close()
 
                     sys.stderr.flush()
                     cursor.close()
                     conn_db.close()
-                    sys.stderr.flush()
-                    cursor.close()
-                    conn_db.close()
         except KeyboardInterrupt:
-             sys.stderr.write("Shutdown signal received.\n")
-             break
+            sys.stderr.write("Shutdown signal received.\n")
+            break
         except Exception as e:
-            sys.stderr.write(f"Error: {e}")
+            sys.stderr.write(f"Error: {e}\n")
             sys.stderr.flush()
             time.sleep(2)
+
 
 if __name__ == "__main__":
     start_collector()
