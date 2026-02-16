@@ -1,3 +1,4 @@
+# pythonDataCollector.py
 #
 # This file captures IOT data from the network and puts it in the database
 #
@@ -73,22 +74,22 @@ def start_collector():
                     sys.stderr.flush()
                     if location == 'home':
                         now = datetime.now()
-                        if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
-                            cursor = conn_db.cursor(dictionary=True)
-                            week_query = f"""
-                                                    SELECT payload 
-                                                    FROM {db_config['database']}.sumpData 
-                                                    WHERE STR_TO_DATE(payload->>'$.datetime', '%Y-%m-%d %H:%M:%S') >= NOW() - INTERVAL 7 DAY
-                                                """
-                            cursor.execute(week_query)
-                            rows = cursor.fetchall()
-                            weekly_data_list = [json.loads(row['payload']) for row in rows]
-                            weekly_json_output = json.dumps(weekly_data_list)
+                        # if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
+                        if lastRunTime is None or now >= (lastRunTime + timedelta(seconds=30)):
+                            # cursor = conn_db.cursor(dictionary=True)
+                            # week_query = f"""
+                            #                         SELECT payload
+                            #                         FROM {db_config['database']}.sumpData
+                            #                         WHERE STR_TO_DATE(payload->>'$.datetime', '%Y-%m-%d %H:%M:%S') >= NOW() - INTERVAL 7 DAY
+                            #                     """
+                            # cursor.execute(week_query)
+                            # rows = cursor.fetchall()
+                            # weekly_data_list = [json.loads(row['payload']) for row in rows]
+                            # weekly_json_output = json.dumps(weekly_data_list)
 
                             url = "https://api.cl1p.net/frothbeast"
                             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-                            # cl1p.net requires the token for both POST/PUT and GET to maintain private clipboards
                             headers = {
                                 "Content-Type": "text/plain",
                                 "cl1papitoken": cl1pToken
@@ -101,20 +102,17 @@ def start_collector():
                                 #     headers=headers,
                                 #     verify=False
                                 # )
-                                # Use POST as cl1p often prefers it for standard clipboard updates via API
-                                response = requests.post(url, data=weekly_json_output, headers=headers, verify=False)
+                                response = requests.post(url, data="hello", headers=headers, verify=False)
 
-                                if response.status_code == 200 or response.status_code == 201:
+                                if 200 <= response.status_code < 300:
                                     lastRunTime = now
-                                    # sys.stderr.write(f"Successfully pushed to cl1p.net. Response: {response.text}\n")
-                                    sys.stderr.write(
-                                        f"Successfully pushed {len(weekly_data_list)} rows to cl1p. Response: {response.status_code}\n")
+                                    sys.stderr.write(f"Successfully pushed to cl1p.net. Response: {response.text}\n")
                                 else:
-                                    # sys.stderr.write(
-                                    #     f"Failed to push data. Status code: {response.status_code}, API Response: {response.text}\n")
+                                    # This will now show the REAL error from cl1p.net
                                     sys.stderr.write(
-                                        f"ERROR: cl1p push failed. Status: {response.status_code} Response: {response.text}\n")
+                                        f"Failed to push data. Status code: {response.status_code}, API Response: {response.text}\n")
                                 sys.stderr.flush()
+
                             except Exception as e:
                                 sys.stderr.write(f"An error occurred during the upload: {e}\n")
                                 sys.stderr.flush()
