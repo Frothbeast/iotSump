@@ -88,6 +88,7 @@ def start_collector():
                             url = "https://api.cl1p.net/frothbeast"
                             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+                            # cl1p.net requires the token for both POST/PUT and GET to maintain private clipboards
                             headers = {
                                 "Content-Type": "text/plain",
                                 "cl1papitoken": cl1pToken
@@ -100,20 +101,20 @@ def start_collector():
                                 #     headers=headers,
                                 #     verify=False
                                 # )
-                                # Ensure data is sent as the request body
-                                response = requests.put(url, data=weekly_json_output, headers=headers, verify=False)
+                                # Use POST as cl1p often prefers it for standard clipboard updates via API
+                                response = requests.post(url, data=weekly_json_output, headers=headers, verify=False)
 
-                                if 200 <= response.status_code < 300:
+                                if response.status_code == 200 or response.status_code == 201:
                                     lastRunTime = now
                                     # sys.stderr.write(f"Successfully pushed to cl1p.net. Response: {response.text}\n")
                                     sys.stderr.write(
-                                        f"Successfully pushed {len(weekly_data_list)} items to cl1p.net. Response: {response.text}\n")
+                                        f"Successfully pushed {len(weekly_data_list)} rows to cl1p. Response: {response.status_code}\n")
                                 else:
-                                    # This will now show the REAL error from cl1p.net
+                                    # sys.stderr.write(
+                                    #     f"Failed to push data. Status code: {response.status_code}, API Response: {response.text}\n")
                                     sys.stderr.write(
-                                        f"Failed to push data. Status code: {response.status_code}, API Response: {response.text}\n")
+                                        f"ERROR: cl1p push failed. Status: {response.status_code} Response: {response.text}\n")
                                 sys.stderr.flush()
-
                             except Exception as e:
                                 sys.stderr.write(f"An error occurred during the upload: {e}\n")
                                 sys.stderr.flush()
