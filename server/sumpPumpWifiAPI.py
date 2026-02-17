@@ -1,4 +1,3 @@
-# sumpPumpWifiAPI.py
 #
 # This file is the API handling web requests and errors
 #
@@ -30,6 +29,7 @@ db_config = {
     'database': os.getenv('DB_NAME')
 }
 
+cl1pURL= os.getenv('CL1P_URL')
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -39,17 +39,15 @@ def serve(path):
         return f"Error: index.html not found in {app.static_folder}", 404
     return send_from_directory(app.static_folder, 'index.html')
 
-
 @app.route('/api/sumpData', methods=['GET'])
 def get_sump_data():
     global lastRunTime
     global location
-    if location == 'work':
-#         if location == 'work':
+    if location == 'work': # if this location has no connection to real database, get data from cl1p
         now = datetime.now()
         if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            url = "https://api.cl1p.net/frothbeast"
+            url = cl1pURL
             cl1pToken = os.getenv('CL1P_TOKEN')
             headers = {"cl1papitoken": cl1pToken}
             try:
@@ -59,6 +57,11 @@ def get_sump_data():
 
                     # LOG EXACT TEXT RECEIVED
                     sys.stderr.write(f"DEBUG: Received from cl1p: {raw_text[:500]}...\n")
+                    conn = mysql.connector.connect(**db_config)
+                    cursor = conn.cursor()
+                    sql = "TRUNCATE TABLE sumpData"
+                    cursor.execute(sql)
+                    conn.commit()
 
                     try:
                         cl1p_payloads = json.loads(raw_text)
@@ -79,16 +82,7 @@ def get_sump_data():
                         if 'cursor' in locals(): cursor.close()
                         if 'conn' in locals(): conn.close()
 
-#                         sys.stderr.flush()
-#                     except mysql.connector.Error as err:
-#                         sys.stderr.write(f"DATABASE ERROR: {err}\n")
-#                     finally:
-#                         if 'cursor' in locals(): cursor.close()
-#                         if 'conn' in locals(): conn.close()
-#                     lastRunTime = now
-#                     sys.stderr.flush()
                 else:
-                    # sys.stderr.write(f"DEBUG: Failed to retrieve data via curl. Error: {result.stderr}\n")
                     sys.stderr.write(f"DEBUG: Failed to retrieve data. Status: {response.status_code}\n")
                     sys.stderr.flush()
             except Exception as e:
@@ -97,15 +91,12 @@ def get_sump_data():
 
     try:
         hours = request.args.get('hours', default=24, type=int)
-
-        # Calculate threshold in Python to keep the SQL string clean
         threshold = datetime.now() - timedelta(hours=hours)
         threshold_str = threshold.strftime('%Y-%m-%d %H:%M:%S')
 
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor(dictionary=True)
 
-        # The SQL driver only sees one %s and won't confuse %Y with a placeholder
         query = """
             SELECT id, payload FROM sumpData 
             WHERE payload->>'$.datetime' >= %s
@@ -127,7 +118,6 @@ def get_sump_data():
         sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
         sys.stderr.flush()
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/api/data', methods=['GET', 'POST'])
 def handle_data():
@@ -165,14 +155,12 @@ def handle_data():
         sys.stderr.flush()
         return jsonify({"error": str(e)}), 500
 
-
 @app.errorhandler(404)
 def not_found(e):
     import os
     if not os.path.exists(os.path.join(app.static_folder, 'index.html')):
         return "Fallback failed: index.html missing", 404
     return send_from_directory(app.static_folder, 'index.html')
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
