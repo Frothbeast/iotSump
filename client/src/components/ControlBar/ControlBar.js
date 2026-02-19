@@ -37,7 +37,8 @@ const ControlBar = ({ selectedHours, onHoursChange, columnStats, sumpRecords, to
       <div className="centerSection">
         <div className="lastRun">
           <span className="label">Last Run:</span>
-          <span className="value">{columnStats?.lastDatetime ?? "N/a"}</span>
+          <span className="value">{columnStats?.lastTime ?? "N/a"}</span>
+          <span className="unit">{columnStats?.lastDate ?? "N/a"}</span>
         </div>
         <div className="lastRunPeriod">
           <span className="label">Last Period:</span>

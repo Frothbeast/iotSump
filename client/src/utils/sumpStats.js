@@ -26,8 +26,8 @@ export const calculateColumnStats = (sumpRecords) => {
   
   const diffs = datetime.slice(1).map((v, i) => new Date(datetime[i]).getTime() - new Date(v).getTime());
   const parts = datetime[0].split(" ");
-  const reordered = [parts[1], parts[0]]; 
-  const reversed = reordered.join(" ");
+  const lastDate = parts[0];
+  const lastTime = parts[1];
   const lastRecord = sumpRecords[sumpRecords.length - 1]?.payload;
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
   const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
@@ -45,6 +45,7 @@ export const calculateColumnStats = (sumpRecords) => {
       max: formatMsToTime(StatsLib.max(diffs)),
       min: formatMsToTime(StatsLib.min(diffs))
     },
-    lastDatetime: reversed
+    lastDate: lastDate
+    lastTime: lastTime
   };
 };
