@@ -97,3 +97,19 @@
   pointer-events: none; 
   user-select: none; 
 }
+
+.label {
+    color: #888888;
+  font-weight: bold;
+}
+
+.unit {
+  color: #888888;
+  font-style: italic;
+}
+.value {
+  color: var(--menu-colour);
+}
+span + span {
+  margin-left: 10px; /* adds space to the left of all but the first span */
+}
