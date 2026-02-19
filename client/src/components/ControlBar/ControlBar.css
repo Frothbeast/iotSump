@@ -113,3 +113,9 @@
 span + span {
   margin-left: 10px; /* adds space to the left of all but the first span */
 }
+span {
+    white-space: nowrap;
+    display: inline-block;
+    width: 100%;
+    view-transition-name: shrink-text;
+  }
