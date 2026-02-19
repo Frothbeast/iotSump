@@ -15,7 +15,6 @@ const SumpTable = ({ sumpRecords = [], columnStats }) => {
                         <th className="sumpTableHeaderCellRow1" >Low</th>
                         <th className="sumpTableHeaderCellRow1" >On</th>
                         <th className="sumpTableHeaderCellRow1" >Off</th>
-                        <th className="sumpTableHeaderCellRow1" >Hours</th>
                         <th className="sumpTableHeaderCellRow1" >Duty</th> 
                     </tr>
                     <tr className="sumpTableHeaderRow2">
@@ -25,7 +24,6 @@ const SumpTable = ({ sumpRecords = [], columnStats }) => {
                         <th className="sumpTableHeaderCellRow2">{columnStats.Ladc.max}</th>
                         <th className="sumpTableHeaderCellRow2">{columnStats.timeOn.max}</th>
                         <th className="sumpTableHeaderCellRow2">{columnStats.timeOff.max}</th>
-                        <th className="sumpTableHeaderCellRow2">{columnStats.hoursOn.max}</th>
     		            <th className="sumpTableHeaderCellRow2">{columnStats.duty.max}</th> 
                     </tr>
                     <tr className="sumpTableHeaderRow3">
@@ -35,7 +33,6 @@ const SumpTable = ({ sumpRecords = [], columnStats }) => {
                         <th className="sumpTableHeaderCellRow3">{columnStats.Ladc.avg}</th>
                         <th className="sumpTableHeaderCellRow3">{columnStats.timeOn.avg}</th>
                         <th className="sumpTableHeaderCellRow3">{columnStats.timeOff.avg}</th>
-                        <th className="sumpTableHeaderCellRow3">{columnStats.hoursOn.avg}</th>
     		            <th className="sumpTableHeaderCellRow3">{columnStats.duty.avg}</th> 
                     </tr>
                     <tr className="sumpTableHeaderRow4">
@@ -45,7 +42,6 @@ const SumpTable = ({ sumpRecords = [], columnStats }) => {
                         <th className="sumpTableHeaderCellRow4">{columnStats.Ladc.min}</th>
                         <th className="sumpTableHeaderCellRow4">{columnStats.timeOn.min}</th>
                         <th className="sumpTableHeaderCellRow4">{columnStats.timeOff.min}</th>
-                        <th className="sumpTableHeaderCellRow4">{columnStats.hoursOn.min}</th>
     		            <th className="sumpTableHeaderCellRow4">{columnStats.duty.min}</th>  
                     </tr>
                 </thead>
@@ -56,11 +52,10 @@ const SumpTable = ({ sumpRecords = [], columnStats }) => {
                             <td className="sumpTableCell1"></td>
                             <td className="sumpTableCell2">{record.payload?.datetime ? record.payload.datetime.split(' ')[1] : "N/a"}</td>
                             <td className="sumpTableCell">{record.payload?.Hadc ?? "N/a"}</td>
-			                <td className="sumpTableCell">{record.payload?.Ladc ?? "N/a"}</td>
+			                      <td className="sumpTableCell">{record.payload?.Ladc ?? "N/a"}</td>
                             <td className="sumpTableCell">{record.payload?.timeOn ?? "N/a"}</td>
                             <td className="sumpTableCell">{record.payload?.timeOff ?? "N/a"}</td>
-                            <td className="sumpTableCell">{record.payload?.hoursOn ?? "N/a"}</td>
-			                <td className="sumpTableCell">{record.payload?.duty ?? "N/a"}</td>
+                            <td className="sumpTableCell">{record.payload?.duty ?? "N/a"}</td>
                         </tr>
                     ))}
                 </tbody>

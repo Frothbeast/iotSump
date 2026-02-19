@@ -27,7 +27,7 @@
   align-items: stretch;
 }
 
-.lastRun{
+.lastRun, .lastRunPeriod, .hoursSincePowerup{
   flex: 1;
   display: flex;
   align-items: center;
