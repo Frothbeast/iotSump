@@ -110,3 +110,6 @@
 .value {
   color: var(--menu-colour);
 }
+span + span {
+  margin-left: 10px; /* adds space to the left of all but the first span */
+}

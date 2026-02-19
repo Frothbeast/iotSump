@@ -48,7 +48,7 @@ const ControlBar = ({ selectedHours, onHoursChange, columnStats, sumpRecords, to
         <div className="hoursSincePowerup">
           <span className="label">Powered:</span>
           <span className="value"> {columnStats?.hoursOn ?? 0} </span>
-          <span className="unit">  hours </span> 
+          <span className="unit">  hours </span>
         </div>
         <div className="buttonRow">
           <button className="sidebarButton" onClick={toggleSidebar}>
