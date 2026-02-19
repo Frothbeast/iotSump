@@ -36,8 +36,8 @@ const ControlBar = ({ selectedHours, onHoursChange, columnStats, sumpRecords, to
       <div className="brand">Sump</div>
       <div className="centerSection">
         <div className="lastRun">Last Run: {columnStats?.lastDatetime ?? "N/a"}</div>
-        <div className="lastRunPeriod">Last Period: {(columnStats?.timeOff ?? 0) + (columnStats?.timeOn ?? 0)} seconds</div>
-        <div className="hoursSincePowerup">Hours Since Powerup: {columnStats?.hours ?? 0} hours</div>
+        <div className="lastRunPeriod">Last Period: {(columnStats?.period ?? 0)} seconds</div>
+        <div className="hoursSincePowerup">Hours Since Powerup: {columnStats?.hoursOn ?? 0} hours</div>
         <div className="buttonRow">
           <button className="sidebarButton" onClick={toggleSidebar}>
             {isSidebarOpen ? "Close Chart" : "View Graph"}

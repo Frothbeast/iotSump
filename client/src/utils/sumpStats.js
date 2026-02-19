@@ -28,12 +28,17 @@ export const calculateColumnStats = (sumpRecords) => {
   const parts = datetime[0].split(" ");
   const reordered = [parts[1], parts[0]]; 
   const reversed = reordered.join(" ");
+  const lastRecord = sumpRecords[sumpRecords.length - 1]?.payload;
+  const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
+  const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
+  const lastHoursOn = parseFloat(lastRecord?.hoursOn) || 0;
   return {
     Hadc: { avg: StatsLib.avg(Hadcs), max: StatsLib.max(Hadcs), min: StatsLib.min(Hadcs) },
     Ladc: { avg: StatsLib.avg(Ladcs), max: StatsLib.max(Ladcs), min: StatsLib.min(Ladcs) },
     timeOn: { avg: StatsLib.avg(timeOns), max: StatsLib.max(timeOns), min: StatsLib.min(timeOns) },
     timeOff: { avg: StatsLib.avg(timeOffs), max: StatsLib.max(timeOffs), min: StatsLib.min(timeOffs) },
-    hoursOn: { avg: StatsLib.avg(hoursOns), max: StatsLib.max(hoursOns), min: StatsLib.min(hoursOns) },
+    hoursOn: lastHoursOn,
+    period: lastTimeOn + lastTimeOff,
     duty: { avg: StatsLib.avg(duties), max: StatsLib.max(duties), min: StatsLib.min(duties) },
     datetime: {
       avg: formatMsToTime(StatsLib.avg(diffs)),
