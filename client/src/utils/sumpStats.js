@@ -45,7 +45,7 @@ export const calculateColumnStats = (sumpRecords) => {
       max: formatMsToTime(StatsLib.max(diffs)),
       min: formatMsToTime(StatsLib.min(diffs))
     },
-    lastDate: lastDate
+    lastDate: lastDate,
     lastTime: lastTime
   };
 };
