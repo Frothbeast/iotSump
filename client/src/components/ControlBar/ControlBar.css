@@ -18,6 +18,9 @@
   font-size: 8cqw;
   text-align: center;
   flex-basis: 30%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .centerSection{
@@ -27,7 +30,7 @@
   align-items: stretch;
 }
 
-.lastRun{
+.lastRun, .lastRunPeriod, .hoursSincePowerup{
   flex: 1;
   display: flex;
   align-items: center;
