@@ -97,18 +97,29 @@
   pointer-events: none; 
   user-select: none; 
 }
-
+span + span {
+  margin-left: 10px; /* adds space to the left of all but the first span */
+}
+span {
+    white-space: nowrap;
+    display: inline-block;
+    width: 100%;
+    view-transition-name: shrink-text;
+  }
 .label {
-    color: #888888;
+  color: #888888;
   font-weight: bold;
+  text-align: right;
 }
 
 .unit {
   color: #888888;
   font-style: italic;
+  text-align: left;
 }
 .value {
   color: var(--menu-colour);
+  text-align: center;
 }
 span + span {
   margin-left: 10px; /* adds space to the left of all but the first span */
