@@ -110,16 +110,19 @@ span {
   color: #888888;
   font-weight: bold;
   text-align: right;
+  flex: 1;
 }
 
 .unit {
   color: #888888;
   font-style: italic;
   text-align: left;
+  flex: 1;
 }
 .value {
   color: var(--menu-colour);
   text-align: center;
+  flex: 1;
 }
 span + span {
   margin-left: 10px; /* adds space to the left of all but the first span */
