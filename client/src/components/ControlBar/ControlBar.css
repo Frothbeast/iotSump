@@ -27,8 +27,8 @@
   flex-basis: 40%;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: space-between;
+  display: flex;
+  align-items: center;
 }
 
 .lastRun, .lastRunPeriod, .hoursSincePowerup{
@@ -98,15 +98,10 @@
   pointer-events: none; 
   user-select: none; 
 }
-span + span {
-  margin-left: 10px; /* adds space to the left of all but the first span */
+.label, .unit {
+  flex: 1; 
+  white-space: nowrap;
 }
-span {
-    white-space: nowrap;
-    display: inline-block;
-    width: 100%;
-    view-transition-name: shrink-text;
-  }
 .label {
   color: #888888;
   font-weight: bold;
@@ -118,11 +113,11 @@ span {
   color: #888888;
   font-style: italic;
   text-align: left;
-  flex: 1;
 }
 .value {
+  flex: 0 0 auto;
   color: var(--menu-colour);
   text-align: center;
-  flex: 1;
+  white-space: nowrap;
 }
 
