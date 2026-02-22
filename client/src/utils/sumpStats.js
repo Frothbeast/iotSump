@@ -31,7 +31,7 @@ export const calculateColumnStats = (sumpRecords) => {
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
   const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
   const lastHoursOn = parseFloat(lastRecord?.hoursOn) || 0;
-  const period = (lastTimeOn + lastTimeOff)/60;
+  const period = Math.round((lastTimeOn + lastTimeOff)/60);
   return {
     Hadc: { avg: StatsLib.avg(Hadcs), max: StatsLib.max(Hadcs), min: StatsLib.min(Hadcs) },
     Ladc: { avg: StatsLib.avg(Ladcs), max: StatsLib.max(Ladcs), min: StatsLib.min(Ladcs) },

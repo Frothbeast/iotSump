@@ -125,6 +125,4 @@ span {
   text-align: center;
   flex: 1;
 }
-.lastRun, .lastRunPeriod, .hoursSincePowerup {
-  justify-content:stretch
-}
+
