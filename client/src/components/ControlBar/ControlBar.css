@@ -126,5 +126,5 @@ span {
   flex: 1;
 }
 .lastRun, .lastRunPeriod, .hoursSincePowerup {
-  justify-content: space-between;
+  justify-content:stretch
 }

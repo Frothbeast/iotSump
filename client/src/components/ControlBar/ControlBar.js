@@ -36,19 +36,19 @@ const ControlBar = ({ selectedHours, onHoursChange, columnStats, sumpRecords, to
       <div className="brand">Sump</div>
       <div className="centerSection">
         <div className="lastRun">
-          <span className="label">Last Run: </span>
+          <span className="label">Last Run</span>
           <span className="value">{columnStats?.lastTime ?? "N/a"} </span>
-          <span className="unit">  {columnStats?.lastDate ?? "N/a"} </span>
+          <span className="unit">{columnStats?.lastDate ?? "N/a"} </span>
         </div>
         <div className="lastRunPeriod">
           <span className="label">Last Period: </span>
           <span className="value"> {(columnStats?.period ?? 0)} </span>
-          <span className="unit">  seconds</span>
+          <span className="unit">minutes</span>
         </div>
         <div className="hoursSincePowerup">
           <span className="label">Powered:</span>
-          <span className="value"> {columnStats?.hoursOn ?? 0} </span>
-          <span className="unit">  hours </span>
+          <span className="value">{columnStats?.hoursOn ?? 0}</span>
+          <span className="unit">hours </span>
         </div>
         <div className="buttonRow">
           <button className="sidebarButton" onClick={toggleSidebar}>
