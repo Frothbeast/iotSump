@@ -20,7 +20,6 @@ export const calculateColumnStats = (sumpRecords) => {
   const Ladcs = sumpRecords.map(r => parseFloat(r.payload?.Ladc)).filter(v => !isNaN(v));
   const timeOns = sumpRecords.map(r => parseFloat(r.payload?.timeOn)).filter(v => !isNaN(v));
   const timeOffs = sumpRecords.map(r => parseFloat(r.payload?.timeOff)).filter(v => !isNaN(v));
-  const hoursOns = sumpRecords.map(r => parseFloat(r.payload?.hoursOn)).filter(v => !isNaN(v));
   const duties = sumpRecords.map(r => parseFloat(r.payload?.duty)).filter(v => !isNaN(v));
   const datetime = sumpRecords.map(r => r.payload?.datetime);
   
