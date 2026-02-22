@@ -27,7 +27,8 @@
   flex-basis: 40%;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  display: flex;
+  align-items: center;
 }
 
 .lastRun, .lastRunPeriod, .hoursSincePowerup{
@@ -97,19 +98,28 @@
   pointer-events: none; 
   user-select: none; 
 }
-
+.label, .unit {
+  flex: 1; 
+  white-space: nowrap;
+}
 .label {
-    color: #888888;
+  color: #888888;
   font-weight: bold;
+  text-align: right;
+  flex: 1;
 }
 
 .unit {
   color: #888888;
   font-style: italic;
+  text-align: left;
+  font-size: 2cqw;
 }
 .value {
+  flex: 0 0 auto;
   color: var(--menu-colour);
+  text-align: center;
+  white-space: nowrap;
+  padding: 0 2cqw;
 }
-span + span {
-  margin-left: 10px; /* adds space to the left of all but the first span */
-}
+
