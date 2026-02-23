@@ -1,4 +1,4 @@
-// 3.3V circuit - Sump Pump Controller
+// 3.3V circuit - Sump Pump Controller February 2026 Dan Jubenville
 #include <xc.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,13 +18,12 @@
 #pragma config WDT = OFF        
 #pragma config WDTPS = 4096     
 #pragma config BOREN = OFF      
-#pragma config LVP = OFF        
-
+#pragma config LVP = OFF       
 #define _XTAL_FREQ 20000000
 
 // Hardware Mapping
-#define SSR_out            LATA5           
-#define TRIS_SSR           TRISA5          
+#define SSR_out            LATC0           
+#define TRIS_SSR           TRISC0          
 #define Display_Pin        LATBbits.LATB4  
 #define TRIS_Display       TRISB4          
 #define SENSOR_PWR         LATA3
@@ -47,6 +46,7 @@ uint16_t hoursSincePowerup = 0, currentOnTime = 0, currentOffTime = 0, secondsCo
 uint16_t lastOnTime = 0, lastOffTime = 0, espFails;
 uint8_t pumpState = 0; 
 uint8_t initialSendDone = 0;
+uint16_t lowSampleCount = 0, highSampleCount = 0;
 
 // Raw and Filtered ADC values
 uint16_t low_val = 0, high_val = 0;
@@ -77,7 +77,7 @@ uint16_t read_adc(uint8_t channel);
 void __interrupt() v_isr(void) {
     if (INTCONbits.TMR0IF) {
         secondsCounter++;
-        if (secondsCounter >= 19531) { 
+        if (secondsCounter >= 9765) { 
             secondsCounter = 0;
             triggerSecondCount = 1;
             if (espTimer > 0) espTimer--; 
@@ -116,11 +116,6 @@ void software_putch(char data) {
     Display_Pin = 0; 
     __delay_us(104);
     INTCONbits.GIE = status; 
-}
-
-void clear_display(void) {
-    software_putch(12);
-    __delay_ms(100);
 }
 
 void put_to_disp_buf(const char* str) {
@@ -191,6 +186,7 @@ void process_esp_state_machine(void) {
                 updateDisplayCoord(4, 1, error_display);
                 currentEspState = ESP_IDLE;strcpy((char*)error_msg, "er3");
                 espFails++;
+                lowSum = 0; highSum = 0; lowSampleCount = 0; highSampleCount = 0;
             }
             break;
         case ESP_WAIT_CONNECT:
@@ -202,10 +198,11 @@ void process_esp_state_machine(void) {
                 updateDisplayCoord(4, 1, error_display);
                 currentEspState = ESP_IDLE;strcpy((char*)error_msg, "er5");
                 espFails++;
+                lowSum = 0; highSum = 0; lowSampleCount = 0; highSampleCount = 0;
             }
             break;
         case ESP_START_SEND_CMD:
-            sprintf(data_str, "{\"Hadc\":%u,\"Ladc\":%u,\"hoursOn\":%u,\"timeOn\":%u,\"timeOff\":%u}\r\n", 
+            snprintf(data_str, sizeof(data_str), "{\"Hadc\":%u,\"Ladc\":%u,\"hoursOn\":%u,\"timeOn\":%u,\"timeOff\":%u}\r\n", 
                     lastHatod, lastLatod, hoursSincePowerup, lastOnTime, lastOffTime);
             sprintf(cmd_str, "AT+CIPSEND=%d\r\n", (int)strlen(data_str));
             rx_idx = 0; rx_buf[0] = '\0';
@@ -221,10 +218,11 @@ void process_esp_state_machine(void) {
                 updateDisplayCoord(4, 1, error_display);
                 currentEspState = ESP_IDLE;strcpy((char*)error_msg, "er8");
                 espFails++;
+                lowSum = 0; highSum = 0; lowSampleCount = 0; highSampleCount = 0;
             }
             break;
         case ESP_SEND_DATA:
-            sprintf(data_str, "{\"Hadc\":%u,\"Ladc\":%u,\"hoursOn\":%u,\"timeOn\":%u,\"timeOff\":%u}\r\n", 
+            snprintf(data_str, sizeof(data_str), "{\"Hadc\":%u,\"Ladc\":%u,\"hoursOn\":%u,\"timeOn\":%u,\"timeOff\":%u}\r\n", 
                     lastHatod, lastLatod, hoursSincePowerup, lastOnTime, lastOffTime);
             rx_idx = 0; rx_buf[0] = '\0';
             uart_send_string(data_str);
@@ -234,11 +232,16 @@ void process_esp_state_machine(void) {
             if(strstr((const char*)rx_buf, "SEND OK")) {
                 updateDisplayCoord(4, 1, "ESP: Data Sent OK   ");
                 currentEspState = ESP_IDLE;strcpy((char*)error_msg, " OK");
+                lowSum = 0;
+                highSum = 0;
+                lowSampleCount = 0;
+                highSampleCount = 0;
             } else if (espTimer == 0) {
                 snprintf(error_display, 20, "S-E:%s", (rx_idx > 0) ? (char*)rx_buf : "TO");
                 updateDisplayCoord(4, 1, error_display);
                 currentEspState = ESP_IDLE;strcpy((char*)error_msg, "er0S");
                 espFails++;
+                lowSum = 0; highSum = 0; lowSampleCount = 0; highSampleCount = 0;
             }
             break;
     }
@@ -294,31 +297,35 @@ void main(void) {
         
         if (highLevelStatus) { 
             SSR_out = 1; 
-            if (pumpState == 0) { lowSum = 0; highSum = 0; sampleCount = 0; }
             pumpState = 1; 
         }
         else if (!lowLevelStatus && !highLevelStatus) { 
             SSR_out = 0; 
             if (pumpState == 1) { 
-                if (sampleCount > 0) {
-                    lastLatod = (uint16_t)(lowSum / sampleCount);
-                    lastHatod = (uint16_t)(highSum / sampleCount);
-                }
+                if (lowSampleCount > 0) lastLatod = (uint16_t)(lowSum / lowSampleCount);
+                if (highSampleCount > 0) lastHatod = (uint16_t)(highSum / highSampleCount);
                 if (currentEspState == ESP_IDLE) currentEspState = ESP_START_CONNECT; 
-                duty = 100*lastOnTime/lastOffTime;
+                if ((lastOnTime + lastOffTime) > 0) {
+                    duty = (uint16_t)((100UL * lastOnTime) / (lastOnTime + lastOffTime));
+                }
             }
             pumpState = 0; 
         }
 
         if (triggerSecondCount) {
-            triggerSecondCount = 0; timeToDisplay = 1; secondsSincePowerup++;
+            triggerSecondCount = 0;
+            timeToDisplay = 1;
+            secondsSincePowerup++;
             if (secondsSincePowerup == 10 && !initialSendDone) {
+                if (lowSampleCount > 0) lastLatod = (uint16_t)(lowSum / lowSampleCount);
+                if (highSampleCount > 0) lastHatod = (uint16_t)(highSum / highSampleCount);
                 if (currentEspState == ESP_IDLE) currentEspState = ESP_START_CONNECT;
                 initialSendDone = 1;
                 espFails=0;
             }
             if (pumpState == 1) {
-                lowSum += low_val; highSum += high_val; sampleCount++;
+                highSum += high_val;
+                highSampleCount++;
                 currentOnTime++; wasOn = 1;
                 if (wasOff) { 
                     lastOffTime = currentOffTime; 
@@ -326,6 +333,8 @@ void main(void) {
                     wasOff = 0; 
                 }
             } else {
+                lowSum += low_val;
+                lowSampleCount++;
                 currentOffTime++; wasOff = 1;
                 if (wasOn) { 
                     lastOnTime = currentOnTime; 
