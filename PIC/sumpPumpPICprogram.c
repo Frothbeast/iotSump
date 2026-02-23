@@ -310,7 +310,11 @@ void main(void) {
         else if (!lowLevelStatus && !highLevelStatus) { 
             SSR_out = 0; 
             if (pumpState == 1) { 
-                if (lowSampleCount > 0) lastLatod = (uint16_t)(lowSum / (lowSampleCount > 0 ? lowSampleCount : 1));
+                if (lowSampleCount > 0) lastLatod = (uint16_t)(lowSum / lowSampleCount);
+                lastOnTime = currentOnTime;
+                currentOnTime = 0;
+                wasOn = 0;
+                                
                 if (currentEspState == ESP_IDLE) currentEspState = ESP_START_CONNECT;
                 lowSum = 0; 
                 lowSampleCount = 0; 
@@ -345,11 +349,6 @@ void main(void) {
                 lowSum += low_val;
                 lowSampleCount++;
                 currentOffTime++; wasOff = 1;
-                if (wasOn) { 
-                    lastOnTime = currentOnTime; 
-                    currentOnTime = 0; 
-                    wasOn = 0; 
-                }
             }
             if (secondsSincePowerup % 3600 == 0) hoursSincePowerup++;
         }
