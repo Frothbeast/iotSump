@@ -118,11 +118,6 @@ void software_putch(char data) {
     INTCONbits.GIE = status; 
 }
 
-void clear_display(void) {
-    software_putch(12);
-    __delay_ms(100);
-}
-
 void put_to_disp_buf(const char* str) {
     while(*str) {
         uint8_t next = (disp_head + 1) % DISP_BUF_SIZE;
