@@ -296,15 +296,24 @@ void main(void) {
         highLevelStatus = (high_filtered < 900) ? 1 : 0;
         
         if (highLevelStatus) { 
-            SSR_out = 1; 
-            pumpState = 1; 
+            if (pumpState == 0) {
+                uint32_t rapidSum = 0;
+                for(uint8_t i = 0; i < 10; i++) {
+                    rapidSum += read_adc(1); // Sample high probe (Channel 1)
+                    __delay_ms(1);           // Very brief delay between samples
+                }
+                lastHatod = (uint16_t)(rapidSum / 10);        
+                SSR_out = 1; 
+                pumpState = 1; 
+            }
         }
         else if (!lowLevelStatus && !highLevelStatus) { 
             SSR_out = 0; 
             if (pumpState == 1) { 
-                if (lowSampleCount > 0) lastLatod = (uint16_t)(lowSum / lowSampleCount);
-                if (highSampleCount > 0) lastHatod = (uint16_t)(highSum / highSampleCount);
-                if (currentEspState == ESP_IDLE) currentEspState = ESP_START_CONNECT; 
+                if (lowSampleCount > 0) lastLatod = (uint16_t)(lowSum / (lowSampleCount > 0 ? lowSampleCount : 1));
+                if (currentEspState == ESP_IDLE) currentEspState = ESP_START_CONNECT;
+                lowSum = 0; 
+                lowSampleCount = 0; 
                 if ((lastOnTime + lastOffTime) > 0) {
                     duty = (uint16_t)((100UL * lastOnTime) / (lastOnTime + lastOffTime));
                 }
