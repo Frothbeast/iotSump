@@ -52,7 +52,7 @@ const SumpTable = ({ sumpRecords = [], columnStats }) => {
                             <td className="sumpTableCell1"></td>
                             <td className="sumpTableCell2">{record.payload?.datetime ? record.payload.datetime.split(' ')[1] : "N/a"}</td>
                             <td className="sumpTableCell">{record.payload?.Hadc ?? "N/a"}</td>
-			                      <td className="sumpTableCell">{record.payload?.Ladc ?? "N/a"}</td>
+			                <td className="sumpTableCell">{record.payload?.Ladc ?? "N/a"}</td>
                             <td className="sumpTableCell">{record.payload?.timeOn ?? "N/a"}</td>
                             <td className="sumpTableCell">{record.payload?.timeOff ?? "N/a"}</td>
                             <td className="sumpTableCell">{record.payload?.duty ?? "N/a"}</td>

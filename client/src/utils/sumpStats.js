@@ -28,9 +28,9 @@ export const calculateColumnStats = (sumpRecords) => {
   const lastDate = parts[0];
   const lastTime = parts[1].slice(0,-3);
   const lastRecord = sumpRecords[sumpRecords.length - 1]?.payload;
-  const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
-  const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
-  const lastHoursOn = parseFloat(lastRecord?.hoursOn) || 0;
+  const lastTimeOn = parseFloat(firstRecord?.timeOn) || 0;
+  const lastTimeOff = parseFloat(firstRecord?.timeOff) || 0;
+  const lastHoursOn = parseFloat(firstRecord?.hoursOn) || 0;
   const period = Math.round((lastTimeOn + lastTimeOff)/60);
   return {
     Hadc: { avg: StatsLib.avg(Hadcs), max: StatsLib.max(Hadcs), min: StatsLib.min(Hadcs) },
