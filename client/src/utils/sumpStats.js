@@ -27,7 +27,7 @@ export const calculateColumnStats = (sumpRecords) => {
   const parts = datetime[0].split(" ");
   const lastDate = parts[0];
   const lastTime = parts[1].slice(0,-3);
-  const lastRecord = sumpRecords[sumpRecords.length - 1]?.payload;
+  const lastRecord = sumpRecords[0]?.payload;
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
   const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
   const lastHoursOn = parseFloat(lastRecord?.hoursOn) || 0;

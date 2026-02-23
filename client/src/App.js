@@ -7,7 +7,7 @@ import { calculateColumnStats } from './utils/sumpStats'; // Import logic
 import './App.css';
 
 function App() {
-  const [selectedHours, setSelectedHours] = useState(168);
+  const [selectedHours, setSelectedHours] = useState(24);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const { sumpRecords, isLoading } = useSumpData(selectedHours);
 
