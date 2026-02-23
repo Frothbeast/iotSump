@@ -77,7 +77,7 @@ uint16_t read_adc(uint8_t channel);
 void __interrupt() v_isr(void) {
     if (INTCONbits.TMR0IF) {
         secondsCounter++;
-        if (secondsCounter >= 9765) { 
+        if (secondsCounter >= 9223) { 
             secondsCounter = 0;
             triggerSecondCount = 1;
             if (espTimer > 0) espTimer--; 
