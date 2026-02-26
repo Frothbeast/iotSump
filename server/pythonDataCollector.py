@@ -100,8 +100,8 @@ def start_collector():
                   headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
                   try:
                     response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
+                    lastRunTime = now
                     if 200 <= response.status_code < 300:
-                      lastRunTime = now
                       sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} rows to cl1p.\n")
                     else:
                       sys.stderr.write(f"Push failed: {response.status_code} - {response.text}\n")
