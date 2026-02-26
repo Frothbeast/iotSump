@@ -24,79 +24,103 @@ cl1pToken = os.getenv('CL1P_TOKEN')
 cl1pURL = os.getenv('CL1P_URL')
 
 db_config = {
-    'host': os.getenv('DB_HOST'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASS'),
-    'database': os.getenv('DB_NAME'),
+  'host': os.getenv('DB_HOST'),
+  'user': os.getenv('DB_USER'),
+  'password': os.getenv('DB_PASS'),
+  'database': os.getenv('DB_NAME'),
 }
 
+
 def start_collector():
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind((BIND_HOST, PORT))
-    server_socket.listen(5)
-    print(f"Monitoring port {PORT} for incoming raw ASCII data...")
-    global lastRunTime
-    while True:
-        try:
-            conn, addr = server_socket.accept()
-            with conn:
-                data = conn.recv(1024)
-                if data:
-                    decoded_data = data.decode('ascii').strip()
-                    payload_dict = json.loads(decoded_data)
-                    payload_dict['datetime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    t_on = int(payload_dict.get("timeOn", 0))
-                    t_off = int(payload_dict.get("timeOff", 0))
-                    payload_dict['duty'] = str(round(100 * t_on / (t_on + t_off + 1)))
-                    conn_db = mysql.connector.connect(**db_config)
-                    cursor = conn_db.cursor()
-                    query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
-                    cursor.execute(query, (json.dumps(payload_dict),))
-                    conn_db.commit()
-                    if location == 'home':
-                        now = datetime.now()
-                        if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
-                            cursor_fetch = conn_db.cursor(dictionary=True)
-                            week_query = f"""
-                                SELECT payload 
-                                FROM {db_config['database']}.sumpData 
-                                WHERE payload->>'$.datetime' >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-                            """
-                            cursor_fetch.execute(week_query)
-                            rows = cursor_fetch.fetchall()
-                            if rows:
-                                weekly_data_list = [
-                                    json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload']
-                                    for row in rows]
-                                raw_text_payload = json.dumps(weekly_data_list)
-                                sys.stderr.write(f"DEBUG: Sending to cl1p: {raw_text_payload[:500]}...\n")
-                                sys.stderr.flush()
-                                url = cl1pURL
-                                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-                                headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
-                                try:
-                                    response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
-                                    if 200 <= response.status_code < 300:
-                                        lastRunTime = now
-                                        sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} rows to cl1p.\n")
-                                    else:
-                                        sys.stderr.write(f"Push failed: {response.status_code} - {response.text}\n")
-                                except Exception as e:
-                                    sys.stderr.write(f"Upload error: {e}\n")
-                            else:
-                                sys.stderr.write("DEBUG: SQL returned 0 rows for the last 7 days.\n")
-                            cursor_fetch.close()
-                    sys.stderr.flush()
-                    cursor.close()
-                    conn_db.close()
-        except KeyboardInterrupt:
-            sys.stderr.write("Shutdown signal received.\n")
-            break
-        except Exception as e:
-            sys.stderr.write(f"Error: {e}\n")
+  server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+  server_socket.bind((BIND_HOST, PORT))
+  server_socket.listen(5)
+  print(f"Monitoring port {PORT} for incoming raw ASCII data...")
+  global lastRunTime
+  while True:
+    try:
+      conn, addr = server_socket.accept()
+      with conn:
+        data = conn.recv(1024)
+        if data:
+          decoded_data = data.decode('ascii').strip()
+
+          # NEW VALIDATION LOGIC: Detect 20-char Hex String
+          is_valid_hex = len(decoded_data) == 20 and all(c in '0123456789ABCDEFabcdef' for c in decoded_data)
+
+          if is_valid_hex:
+            payload_dict = {
+              "Hadc": str(int(decoded_data[0:4], 16)),
+              "Ladc": str(int(decoded_data[4:8], 16)),
+              "hoursOn": str(int(decoded_data[8:12], 16)),
+              "timeOn": str(int(decoded_data[12:16], 16)),
+              "timeOff": str(int(decoded_data[16:20], 16))
+            }
+            conn.sendall(b"ACK")
+          else:
+            try:
+              payload_dict = json.loads(decoded_data)
+              conn.sendall(b"ACK")
+            except:
+              conn.sendall(b"ERR")
+              payload_dict = None
+
+          if payload_dict:
+            payload_dict['datetime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            t_on = int(payload_dict.get("timeOn", 0))
+            t_off = int(payload_dict.get("timeOff", 0))
+            payload_dict['duty'] = str(round(100 * t_on / (t_on + t_off + 1)))
+            conn_db = mysql.connector.connect(**db_config)
+            cursor = conn_db.cursor()
+            query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
+            cursor.execute(query, (json.dumps(payload_dict),))
+            conn_db.commit()
+
+            if location == 'home':
+              now = datetime.now()
+              if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
+                cursor_fetch = conn_db.cursor(dictionary=True)
+                week_query = f"""
+                                    SELECT payload 
+                                    FROM {db_config['database']}.sumpData 
+                                    WHERE payload->>'$.datetime' >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                                """
+                cursor_fetch.execute(week_query)
+                rows = cursor_fetch.fetchall()
+                if rows:
+                  weekly_data_list = [
+                    json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload']
+                    for row in rows]
+                  raw_text_payload = json.dumps(weekly_data_list)
+                  sys.stderr.write(f"DEBUG: Sending to cl1p: {raw_text_payload[:500]}...\n")
+                  sys.stderr.flush()
+                  url = cl1pURL
+                  urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                  headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
+                  try:
+                    response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
+                    if 200 <= response.status_code < 300:
+                      lastRunTime = now
+                      sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} rows to cl1p.\n")
+                    else:
+                      sys.stderr.write(f"Push failed: {response.status_code} - {response.text}\n")
+                  except Exception as e:
+                    sys.stderr.write(f"Upload error: {e}\n")
+                else:
+                  sys.stderr.write("DEBUG: SQL returned 0 rows for the last 7 days.\n")
+                cursor_fetch.close()
             sys.stderr.flush()
-            time.sleep(2)
+            cursor.close()
+            conn_db.close()
+    except KeyboardInterrupt:
+      sys.stderr.write("Shutdown signal received.\n")
+      break
+    except Exception as e:
+      sys.stderr.write(f"Error: {e}\n")
+      sys.stderr.flush()
+      time.sleep(2)
+
 
 if __name__ == "__main__":
-    start_collector()
+  start_collector()
