@@ -44,7 +44,17 @@ def start_collector():
                 data = conn.recv(1024)
                 if data:
                     decoded_data = data.decode('ascii').strip()
-                    payload_dict = json.loads(decoded_data)
+                    if len(decoded_data) == 20 and all(c in '0123456789ABCDEFabcdef' for c in decoded_data):
+                        payload_dict = {
+                            "Hadc": str(int(decoded_data[0:4], 16)),
+                            "Ladc": str(int(decoded_data[4:8], 16)),
+                            "hoursOn": str(int(decoded_data[8:12], 16)),
+                            "timeOn": str(int(decoded_data[12:16], 16)),
+                            "timeOff": str(int(decoded_data[16:20], 16))
+                        }
+                    else:
+                        payload_dict = json.loads(decoded_data)
+
                     payload_dict['datetime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     t_on = int(payload_dict.get("timeOn", 0))
                     t_off = int(payload_dict.get("timeOff", 0))

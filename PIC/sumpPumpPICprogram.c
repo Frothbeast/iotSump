@@ -202,7 +202,8 @@ void process_esp_state_machine(void) {
             }
             break;
         case ESP_START_SEND_CMD:
-            snprintf(data_str, sizeof(data_str), "{\"Hadc\":%u,\"Ladc\":%u,\"hoursOn\":%u,\"timeOn\":%u,\"timeOff\":%u}\r\n", 
+
+            snprintf(data_str, sizeof(data_str), "%04X%04X%04X%04X%04X\r\n", 
                     lastHatod, lastLatod, hoursSincePowerup, lastOnTime, lastOffTime);
             sprintf(cmd_str, "AT+CIPSEND=%d\r\n", (int)strlen(data_str));
             rx_idx = 0; rx_buf[0] = '\0';
@@ -222,7 +223,8 @@ void process_esp_state_machine(void) {
             }
             break;
         case ESP_SEND_DATA:
-            snprintf(data_str, sizeof(data_str), "{\"Hadc\":%u,\"Ladc\":%u,\"hoursOn\":%u,\"timeOn\":%u,\"timeOff\":%u}\r\n", 
+            
+            snprintf(data_str, sizeof(data_str), "%04X%04X%04X%04X%04X\r\n", 
                     lastHatod, lastLatod, hoursSincePowerup, lastOnTime, lastOffTime);
             rx_idx = 0; rx_buf[0] = '\0';
             uart_send_string(data_str);
