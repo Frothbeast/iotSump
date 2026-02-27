@@ -37,13 +37,13 @@
   color: #ffffff;
   width: 100%;
   align-self: flex-end;
-  justify-content: center;
 }
 
 .stLabel {
   font-size: 2cqw;
   color: #888888;
   align-self: flex-end;
+  justify-content: center;
 }
 
 .centerSection{
