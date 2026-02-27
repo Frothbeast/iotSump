@@ -42,6 +42,7 @@
 .stLabel {
   font-size: 2cqw;
   color: #888888;
+  align-self: center;
   margin-right: 1cqw;
 }
 
