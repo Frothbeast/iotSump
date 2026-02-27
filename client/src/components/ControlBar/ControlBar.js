@@ -1,7 +1,7 @@
 import SumpChart from '../sumpTable/sumpChart';
 import './ControlBar.css';
 
-const ControlBar = ({ selectedHours, onHoursChange, columnStats, sumpRecords, toggleSidebar, isSidebarOpen }) => {
+const ControlBar = ({ selectedHours, onHoursChange, columnStats, sumpRecords, toggleSidebar, isSidebarOpen, serverTime }) => {
   const getOptions = (min, max) => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -33,7 +33,10 @@ const ControlBar = ({ selectedHours, onHoursChange, columnStats, sumpRecords, to
 
   return (
     <header className="controlBar">
-      <div className="brand">Sump</div>
+      <div className="brandSection">
+        <div className="brand">Sump</div>
+        <div className="serverTime"><span className="stLabel">Server Time:</span><span>{serverTime ?? "00:00:00"}</span></div>
+      </div>
       <div className="centerSection">
         <div className="lastRun">
           <span className="label">Last Run</span>
