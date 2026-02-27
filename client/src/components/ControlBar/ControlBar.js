@@ -35,7 +35,7 @@ const ControlBar = ({ selectedHours, onHoursChange, columnStats, sumpRecords, to
     <header className="controlBar">
       <div className="brandSection">
         <div className="brand">Sump</div>
-        <div className="serverTime">{serverTime ?? "00:00:00"}</div>
+        <div className="serverTime">Server Time:{serverTime ?? "00:00:00"}</div>
       </div>
       <div className="centerSection">
         <div className="lastRun">

@@ -34,7 +34,7 @@
   align-items: flex-start;
   justify-content: center;
   font-size: 3cqw;
-  color: #888888;
+  color: #ffffff;
   width: 100%;
 }
 
@@ -116,6 +116,7 @@
 .label, .unit {
   flex: 1; 
   white-space: nowrap;
+  font-size: 2cqw;
 }
 .label {
   color: #888888;
