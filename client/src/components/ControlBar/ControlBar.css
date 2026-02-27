@@ -43,7 +43,7 @@
   font-size: 2cqw;
   color: #888888;
   align-self: flex-end;
-  justify-content: center;
+  margin-right: 1cqw;
 }
 
 .centerSection{
