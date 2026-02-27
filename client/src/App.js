@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useSumpData } from './hooks/useSumpData';
 import SumpTable from './components/sumpTable/sumpTable';
 import ControlBar from './components/ControlBar/ControlBar';
@@ -13,6 +13,21 @@ function App() {
 
   const columnStats = useMemo(() => calculateColumnStats(sumpRecords), [sumpRecords]);
 
+  const [serverTime, setServerTime] = useState("00:00 AM");
+
+  const updateTime = () => {
+    fetch('/api/time')
+      .then(res => res.json())
+      .then(data => setServerTime(data.time))
+      .catch(err => console.error("Time fetch failed", err));
+  };
+
+  useEffect(() => {
+    updateTime(); // Get initial time
+    const interval = setInterval(updateTime, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, []);
+
   if (isLoading) return <div className="loader">Loading...</div>;
 
   return (
@@ -24,6 +39,7 @@ function App() {
         sumpRecords={sumpRecords} // Pass raw data for charts
         toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
         isSidebarOpen={isSidebarOpen}
+        serverTime={serverTime}
       />
       <main>
         <div className="tableWrapper">

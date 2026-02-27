@@ -31,6 +31,13 @@ db_config = {
 
 cl1pURL = os.getenv('CL1P_URL')
 
+@app.route('/api/time', methods=['GET'])
+def get_time():
+    # %I is 12-hour clock, %M is minutes, %p is AM/PM
+    now = datetime.now()
+    server_time = now.strftime("%I:%M %p")
+    return jsonify({"time": server_time})
+
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
