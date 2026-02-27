@@ -38,6 +38,11 @@
   width: 100%;
 }
 
+.stLabel {
+  font-size: 2cqw;
+  color: #888888;
+}
+
 .centerSection{
   flex-basis: 40%;
   display: flex;
