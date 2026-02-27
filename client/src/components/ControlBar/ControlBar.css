@@ -36,6 +36,8 @@
   font-size: 3cqw;
   color: #ffffff;
   width: 100%;
+  align-self: flex-end;
+  justify-content: center;
 }
 
 .stLabel {
