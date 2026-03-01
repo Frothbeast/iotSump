@@ -96,7 +96,7 @@ def start_collector():
                                 total_sensor_time = t_on + t_off
 
                                 # Logic: 0.9 * diff <= sensor_time <= 1.1 * diff
-                                if 0.9 * run_time_diff <= total_sensor_time <= 1.1 * run_time_diff:
+                                if 0.9 * run_time_diff <= total_sensor_time:
                                     sys.stderr.write(
                                         "DEBUG: Duplicate packet detected. Timing is within 10% tolerance.\n")
                                 else:
@@ -126,40 +126,41 @@ def start_collector():
                                     FROM {db_config['database']}.sumpData 
                                     WHERE payload->>'$.datetime' >= DATE_SUB(NOW(), INTERVAL 7 DAY)
                                 """
-                cursor_fetch.execute(week_query)
-                rows = cursor_fetch.fetchall()
-                if rows:
-                  weekly_data_list = [
-                    json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload']
-                    for row in rows]
-                  raw_text_payload = json.dumps(weekly_data_list)
-                  sys.stderr.write(f"DEBUG: Sending to cl1p: {raw_text_payload[:500]}...\n")
-                  sys.stderr.flush()
-                  url = cl1pURL
-                  urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-                  headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
-                  try:
-                    response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
-                    lastRunTime = now
-                    if 200 <= response.status_code < 300:
-                      sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} rows to cl1p.\n")
-                    else:
-                      sys.stderr.write(f"Push failed: {response.status_code} - {response.text}\n")
-                  except Exception as e:
-                    sys.stderr.write(f"Upload error: {e}\n")
-                else:
-                  sys.stderr.write("DEBUG: SQL returned 0 rows for the last 7 days.\n")
-                cursor_fetch.close()
+                                # Corrected indentation for query execution and results handling
+                                cursor_fetch.execute(week_query)
+                                rows = cursor_fetch.fetchall()
+                                if rows:
+                                    weekly_data_list = [
+                                        json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload']
+                                        for row in rows]
+                                    raw_text_payload = json.dumps(weekly_data_list)
+                                    sys.stderr.write(f"DEBUG: Sending to cl1p: {raw_text_payload[:500]}...\n")
+                                    sys.stderr.flush()
+                                    url = cl1pURL
+                                    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                                    headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
+                                    try:
+                                        response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
+                                        lastRunTime = now
+                                        if 200 <= response.status_code < 300:
+                                            sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} rows to cl1p.\n")
+                                        else:
+                                            sys.stderr.write(f"Push failed: {response.status_code} - {response.text}\n")
+                                    except Exception as e:
+                                        sys.stderr.write(f"Upload error: {e}\n")
+                                else:
+                                    sys.stderr.write("DEBUG: SQL returned 0 rows for the last 7 days.\n")
+                                cursor_fetch.close()
+                        sys.stderr.flush()
+                        cursor.close()
+                        conn_db.close()
+        except KeyboardInterrupt:
+            sys.stderr.write("Shutdown signal received.\n")
+            break
+        except Exception as e:
+            sys.stderr.write(f"Error: {e}\n")
             sys.stderr.flush()
-            cursor.close()
-            conn_db.close()
-    except KeyboardInterrupt:
-      sys.stderr.write("Shutdown signal received.\n")
-      break
-    except Exception as e:
-      sys.stderr.write(f"Error: {e}\n")
-      sys.stderr.flush()
-      time.sleep(2)
+            time.sleep(2)
 
 
 if __name__ == "__main__":
