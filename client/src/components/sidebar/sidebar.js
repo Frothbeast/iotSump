@@ -37,7 +37,12 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             }
           },
           display: true,
-          reverse: true 
+          reverse: true,
+          ticks: {
+            maxTicksLimit: 10, 
+            autoSkip: true,    // Ensures labels don't overlap
+            color: 'grey'      
+          } 
         }, 
         y: { display: true, ticks: {color: 'grey'}, grace: '10%',grid: {
             color: 'rgba(255, 255, 255, 0.42)' 
