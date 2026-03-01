@@ -2,7 +2,7 @@ import React from 'react';
 import SumpChart from '../sumpTable/sumpChart';
 import './sidebar.css'; 
 
-const Sidebar = ({ isOpen, sumpRecords }) => {
+const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
   const sidebarChartOptions = {
       responsive: true,
