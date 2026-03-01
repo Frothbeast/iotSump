@@ -57,7 +57,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
       <div className="sidebar-content">
         <div className="chartContainer">
           <SumpChart 
-            labels={sumpRecords.map((_, i) => i)}
+            labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{ label: "Low ADC Value", color: "lightblue", data: sumpRecords.map(r => r.payload?.Ladc) },
                       { label: "High ADC Value", color: "lightgreen", data: sumpRecords.map(r => r.payload?.Hadc) }]} 
             options={sidebarChartOptions}           
@@ -65,7 +65,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         </div>
         <div className="chartContainer">
           <SumpChart 
-            labels={sumpRecords.map((_, i) => i)}
+            labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{ label: "Pump On time(s)", color: "pink", data: sumpRecords.map(r => r.payload?.timeOn) },
                       { label: "Pump Off Time(s)", color: "red", data: sumpRecords.map(r => r.payload?.timeOff) }]} 
             options={sidebarChartOptions}
@@ -73,14 +73,14 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         </div>
         <div className="chartContainer">
           <SumpChart 
-            labels={sumpRecords.map((_, i) => i)}
+            labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{ label: "Duty Cycle", color: "lavender", data: sumpRecords.map(r => r.payload?.duty) }]}
             options={sidebarChartOptions} 
           />
         </div>
         <div className="chartContainer">
           <SumpChart
-            labels={sumpRecords.map((_, i) => i)}
+            labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{
               label: "Minutes between pumps",color: "cyan",
               data: sumpRecords.slice(1).map((r, i) => {
