@@ -1,6 +1,10 @@
 import React from 'react';
 import SumpChart from '../sumpTable/sumpChart';
 import './sidebar.css'; 
+import { Chart as ChartJS, registerables } from 'chart.js';
+import 'chartjs-adapter-date-fns'; // This is the crucial line
+
+ChartJS.register(...registerables);
 
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
