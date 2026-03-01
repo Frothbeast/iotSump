@@ -3,7 +3,7 @@ import SumpChart from '../sumpTable/sumpChart';
 import './sidebar.css'; 
 
 const Sidebar = ({ isOpen, sumpRecords }) => {
-  const timeUnit = hours <= 1 ? 'minute' : (hours <= 48 ? 'hour' : 'day');
+  const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
   const sidebarChartOptions = {
       responsive: true,
       maintainAspectRatio: false,
