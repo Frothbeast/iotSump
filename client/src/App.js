@@ -44,7 +44,7 @@ function App() {
       <main>
         <div className="tableWrapper">
           <SumpTable sumpRecords={sumpRecords} columnStats={columnStats} />
-          <Sidebar isOpen={isSidebarOpen} sumpRecords={sumpRecords} />
+          <Sidebar isOpen={isSidebarOpen} sumpRecords={sumpRecords} selectedHours={selectedHours} />
         </div>
       </main>
     </div>
