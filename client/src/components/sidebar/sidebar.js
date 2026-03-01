@@ -3,6 +3,7 @@ import SumpChart from '../sumpTable/sumpChart';
 import './sidebar.css'; 
 
 const Sidebar = ({ isOpen, sumpRecords }) => {
+  const timeUnit = hours <= 1 ? 'minute' : (hours <= 48 ? 'hour' : 'day');
   const sidebarChartOptions = {
       responsive: true,
       maintainAspectRatio: false,
@@ -21,9 +22,19 @@ const Sidebar = ({ isOpen, sumpRecords }) => {
         } 
       },
       scales: {
-        x: { display: false,
-            reverse: true
-         }, 
+        x: {
+          type: 'time', 
+          time: {
+            unit: timeUnit,
+            displayFormats: {
+              minute: 'h:mm a',
+              hour: 'h a',
+              day: 'MMM d'
+            }
+          },
+          display: true,
+          reverse: true 
+        }, 
         y: { display: true, ticks: {color: 'grey'}, grace: '10%',grid: {
             color: 'rgba(255, 255, 255, 0.42)' 
           }
