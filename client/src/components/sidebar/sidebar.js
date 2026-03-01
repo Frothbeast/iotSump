@@ -1,8 +1,13 @@
 import React from 'react';
 import SumpChart from '../sumpTable/sumpChart';
 import './sidebar.css'; 
+import { Chart as ChartJS, registerables } from 'chart.js';
+import 'chartjs-adapter-date-fns'; // This is the crucial line
 
-const Sidebar = ({ isOpen, sumpRecords }) => {
+ChartJS.register(...registerables);
+
+const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
+  const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
   const sidebarChartOptions = {
       responsive: true,
       maintainAspectRatio: false,
@@ -21,9 +26,19 @@ const Sidebar = ({ isOpen, sumpRecords }) => {
         } 
       },
       scales: {
-        x: { display: false,
-            reverse: true
-         }, 
+        x: {
+          type: 'time', 
+          time: {
+            unit: timeUnit,
+            displayFormats: {
+              minute: 'h:mm a',
+              hour: 'h a',
+              day: 'MMM d'
+            }
+          },
+          display: true,
+          reverse: true 
+        }, 
         y: { display: true, ticks: {color: 'grey'}, grace: '10%',grid: {
             color: 'rgba(255, 255, 255, 0.42)' 
           }
