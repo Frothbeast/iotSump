@@ -31,7 +31,8 @@ const SumpChart = ({ datasets, labels, options }) => {
             borderColor: ds.color,
             backgroundColor: ds.backgroundColor,
             borderWidth: 2,
-            pointRadius: 0,
+            pointRadius: 2,
+            pointStyle: 'circle',
             fill: false,
             tension: 0.4
           }))
