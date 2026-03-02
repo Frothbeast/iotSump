@@ -75,14 +75,14 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
               { label: "Pump On time(s)",
                 color: "pink",
                 data: sumpRecords.map(r => r.payload?.timeOn),
-                backgroundColor: sumpRecords.transparentize(sumpRecords.CHART_COLORS.green, 0.5),
+                backgroundColor: "red",
                 pointStyle: 'circle',
                 pointRadius: 2
               },
               { label: "Pump Off Time(s)",
                 color: "red",
                 data: sumpRecords.map(r => r.payload?.timeOff),
-                backgroundColor: sumpRecords.transparentize(sumpRecords.CHART_COLORS.green, 0.5),
+                backgroundColor: "pink",
                 pointStyle: 'circle',
                 pointRadius: 2
               }
