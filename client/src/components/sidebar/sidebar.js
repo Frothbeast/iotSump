@@ -74,17 +74,17 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             datasets={[
               { label: "Pump On time(s)",
                 color: "pink",
-                backgroundColor: Utils.transparentize(Utils.CHART_COLORS.green, 0.5),
+                data: sumpRecords.map(r => r.payload?.timeOn),
+                backgroundColor: sumpRecords.transparentize(sumpRecords.CHART_COLORS.green, 0.5),
                 pointStyle: 'circle',
-                pointRadius: 2,
-                data: sumpRecords.map(r => r.payload?.timeOn)
+                pointRadius: 2
               },
               { label: "Pump Off Time(s)",
                 color: "red",
-                backgroundColor: Utils.transparentize(Utils.CHART_COLORS.green, 0.5),
+                data: sumpRecords.map(r => r.payload?.timeOff),
+                backgroundColor: sumpRecords.transparentize(sumpRecords.CHART_COLORS.green, 0.5),
                 pointStyle: 'circle',
-                pointRadius: 2,
-                data: sumpRecords.map(r => r.payload?.timeOff)
+                pointRadius: 2
               }
             ]}
             options={sidebarChartOptions}
