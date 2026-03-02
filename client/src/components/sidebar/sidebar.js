@@ -63,8 +63,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         <div className="chartContainer" style={transitionStyle}>
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
-            datasets={[{ label: "Low ADC Value", color: "lightblue", data: sumpRecords.map(r => r.payload?.Ladc) },
-                      { label: "High ADC Value", color: "lightgreen", data: sumpRecords.map(r => r.payload?.Hadc) }]}
+            datasets={[{ label: "Low ADC Value", color: "lightblue", backgroundColor: "lightgreen", data: sumpRecords.map(r => r.payload?.Ladc) },
+                      { label: "High ADC Value", color: "lightgreen", backgroundColor: "lightblue", data: sumpRecords.map(r => r.payload?.Hadc) }]}
             options={sidebarChartOptions}
           />
         </div>
@@ -89,7 +89,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         <div className="chartContainer" style={transitionStyle}>
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
-            datasets={[{ label: "Duty Cycle", color: "lavender", data: sumpRecords.map(r => r.payload?.duty) }]}
+            datasets={[{ label: "Duty Cycle", color: "lavender", backgroundColor: "pink", data: sumpRecords.map(r => r.payload?.duty) }]}
             options={sidebarChartOptions}
           />
         </div>
@@ -97,7 +97,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{
-              label: "Minutes between pumps",color: "cyan",
+              label: "Minutes between pumps",color: "cyan", backgroundColor: "blue",
               data: sumpRecords.slice(1).map((r, i) => {
                 const current = new Date(r.payload?.datetime).getTime();
                 const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
