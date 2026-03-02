@@ -39,11 +39,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           display: true,
           reverse: false,
           ticks: {
-            // my code that you change and insert your new correction.
-            /*
-            maxTicksLimit: 10,
-            */
-            maxTicksLimit: 8, // Limits to ~8 gridlines/labels
+            maxTicksLimit: 8, 
             autoSkip: true,
             color: 'grey'
           }
@@ -56,10 +52,6 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
 
     };
 
-  // my code that you change and insert your new correction.
-  /*
-  const transitionStyle = { transition: 'width 1s' };
-  */
   const transitionStyle = {
     transition: 'width 2s cubic-bezier(0.4, 0, 0.2, 1)',
     willChange: 'width'
@@ -79,8 +71,22 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         <div className="chartContainer" style={transitionStyle}>
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
-            datasets={[{ label: "Pump On time(s)", color: "pink", data: sumpRecords.map(r => r.payload?.timeOn) },
-                      { label: "Pump Off Time(s)", color: "red", data: sumpRecords.map(r => r.payload?.timeOff) }]}
+            datasets={[
+              { label: "Pump On time(s)",
+                color: "pink",
+                backgroundColor: Utils.transparentize(Utils.CHART_COLORS.green, 0.5),
+                pointStyle: 'circle',
+                pointRadius: 2,
+                data: sumpRecords.map(r => r.payload?.timeOn)
+              },
+              { label: "Pump Off Time(s)",
+                color: "red",
+                backgroundColor: Utils.transparentize(Utils.CHART_COLORS.green, 0.5),
+                pointStyle: 'circle',
+                pointRadius: 2,
+                data: sumpRecords.map(r => r.payload?.timeOff)
+              }
+            ]}
             options={sidebarChartOptions}
           />
         </div>
