@@ -37,7 +37,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             }
           },
           display: true,
-          reverse: true,
+          reverse: false,
           ticks: {
             // my code that you change and insert your new correction.
             /*
