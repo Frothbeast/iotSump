@@ -2,7 +2,7 @@ import React from 'react';
 import SumpChart from '../sumpTable/sumpChart';
 import './sidebar.css'; 
 import { Chart as ChartJS, registerables } from 'chart.js';
-import 'chartjs-adapter-date-fns'; // This is the crucial line
+import 'chartjs-adapter-date-fns';
 
 ChartJS.register(...registerables);
 
@@ -11,11 +11,11 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const sidebarChartOptions = {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { 
-        legend: { 
+      plugins: {
+        legend: {
           display: true,
-          position: 'top', 
-          align: 'start',   
+          position: 'top',
+          align: 'start',
           labels: {
             boxWidth: 40,
             boxHeight: 2,
@@ -23,11 +23,11 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             font: {size: 22},
             color: 'lightgrey'
           }
-        } 
+        }
       },
       scales: {
         x: {
-          type: 'time', 
+          type: 'time',
           time: {
             unit: timeUnit,
             displayFormats: {
@@ -39,46 +39,59 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           display: true,
           reverse: true,
           ticks: {
-            maxTicksLimit: 10, 
-            autoSkip: true,    // Ensures labels don't overlap
-            color: 'grey'      
-          } 
-        }, 
+            // my code that you change and insert your new correction.
+            /*
+            maxTicksLimit: 10,
+            */
+            maxTicksLimit: 8, // Limits to ~8 gridlines/labels
+            autoSkip: true,
+            color: 'grey'
+          }
+        },
         y: { display: true, ticks: {color: 'grey'}, grace: '10%',grid: {
-            color: 'rgba(255, 255, 255, 0.42)' 
+            color: 'rgba(255, 255, 255, 0.42)'
           }
         }
       }
 
     };
 
+  // my code that you change and insert your new correction.
+  /*
+  const transitionStyle = { transition: 'width 1s' };
+  */
+  const transitionStyle = {
+    transition: 'width 2s cubic-bezier(0.4, 0, 0.2, 1)',
+    willChange: 'width'
+  };
+
   return (
     <div className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-content">
-        <div className="chartContainer">
-          <SumpChart 
+        <div className="chartContainer" style={transitionStyle}>
+          <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{ label: "Low ADC Value", color: "lightblue", data: sumpRecords.map(r => r.payload?.Ladc) },
-                      { label: "High ADC Value", color: "lightgreen", data: sumpRecords.map(r => r.payload?.Hadc) }]} 
-            options={sidebarChartOptions}           
-          />
-        </div>
-        <div className="chartContainer">
-          <SumpChart 
-            labels={sumpRecords.map(r => r.payload?.datetime)}
-            datasets={[{ label: "Pump On time(s)", color: "pink", data: sumpRecords.map(r => r.payload?.timeOn) },
-                      { label: "Pump Off Time(s)", color: "red", data: sumpRecords.map(r => r.payload?.timeOff) }]} 
+                      { label: "High ADC Value", color: "lightgreen", data: sumpRecords.map(r => r.payload?.Hadc) }]}
             options={sidebarChartOptions}
           />
         </div>
-        <div className="chartContainer">
-          <SumpChart 
+        <div className="chartContainer" style={transitionStyle}>
+          <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
-            datasets={[{ label: "Duty Cycle", color: "lavender", data: sumpRecords.map(r => r.payload?.duty) }]}
-            options={sidebarChartOptions} 
+            datasets={[{ label: "Pump On time(s)", color: "pink", data: sumpRecords.map(r => r.payload?.timeOn) },
+                      { label: "Pump Off Time(s)", color: "red", data: sumpRecords.map(r => r.payload?.timeOff) }]}
+            options={sidebarChartOptions}
           />
         </div>
-        <div className="chartContainer">
+        <div className="chartContainer" style={transitionStyle}>
+          <SumpChart
+            labels={sumpRecords.map(r => r.payload?.datetime)}
+            datasets={[{ label: "Duty Cycle", color: "lavender", data: sumpRecords.map(r => r.payload?.duty) }]}
+            options={sidebarChartOptions}
+          />
+        </div>
+        <div className="chartContainer" style={transitionStyle}>
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{
