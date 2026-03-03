@@ -140,6 +140,11 @@ def start_collector():
                                     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
                                     headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
                                     try:
+                                        response = requests.get(url, headers=headers, verify=False)
+                                    except Exception as e:
+                                        sys.stderr.write(f"Upload error: {e}\n response:{response}\n")
+                                    sys.stderr.write("Successfully removed cl1p.\n")
+                                    try:
                                         response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
                                         lastRunTime = now
                                         if 200 <= response.status_code < 300:
