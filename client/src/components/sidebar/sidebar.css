@@ -25,6 +25,7 @@
   display: flex;
   flex-wrap: wrap;
   align-content: stretch;
+  border: 2px solid black;
 }
 
 .sidebar [class^="chartContainer"] {
@@ -32,7 +33,7 @@
   height: 50%;
   position: relative;
   box-sizing: border-box;
-  border: 1px solid rgb(120, 121, 120);
+  border: 2px solid black;
 }
 
 @container sidebarArea (max-width: 600px) {

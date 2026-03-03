@@ -95,12 +95,14 @@
   flex-basis: 30%;
   align-items: stretch;
   height: 100%;
+  border: 1px solid black;
 }
 .chartContainer {
   flex-basis: 50%;
   position: relative;
   box-sizing: border-box;
   height: 50%;
+  border: 1px solid black;
 }
 .chartContainer canvas {
   width: 100% !important;
