@@ -42,7 +42,10 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             maxTicksLimit: 8, 
             autoSkip: true,
             color: 'grey'
-          }
+          },
+	  grid: {
+	    color: 'rgba(255, 255, 255, 0.42)'
+	  }
         },
         y: { display: true, ticks: {color: 'grey'}, grace: '10%',grid: {
             color: 'rgba(255, 255, 255, 0.42)'
