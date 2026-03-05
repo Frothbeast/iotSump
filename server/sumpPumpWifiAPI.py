@@ -92,7 +92,7 @@ def get_sump_data():
             if 'conn' in locals(): conn.close()
 
         else:
-          sys.stderr.write(f"DEBUG: Failed to retrieve data. Status: {response.status_code}\n")
+          sys.stderr.write(f"DEBUG: Failed to retrieve data. Error: {e}\n")
           sys.stderr.flush()
       except Exception as e:
         sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
