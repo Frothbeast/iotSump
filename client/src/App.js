@@ -17,7 +17,7 @@ function App() {
 
   const cl1pClick = async () => {
     try{
-      const response = await fetch('/api/cl1p, {method: 'POST',});
+      const response = await fetch('/api/cl1p', {method: 'POST',});
       if (response.status === 204) {
           console.log("Action acknowledged by server.");
           // Optional: Show a temporary "Success" toast/message on the UI
