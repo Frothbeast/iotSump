@@ -51,6 +51,7 @@ function App() {
       <ControlBar
         selectedHours={selectedHours}
         onHoursChange={setSelectedHours}
+        cl1pClick={cl1pClick}
         columnStats={columnStats}
         sumpRecords={sumpRecords} // Pass raw data for charts
         toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
