@@ -115,6 +115,7 @@ def cl1p():
                 else:
                     sys.stderr.write(f"DEBUG: Failed to retrieve data. Status: {response.status_code}\n")
                     sys.stderr.flush()
+                return '', 204
             except Exception as e:
                 sys.stderr.write(f"Download error: {e}\n")
     except Exception as e:
