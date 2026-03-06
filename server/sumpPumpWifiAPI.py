@@ -62,6 +62,7 @@ def cl1p():
                 """
                 cursor_fetch.execute(week_query)
                 rows = cursor_fetch.fetchall()
+                raw_text_payload = "[]"
                 if rows:
                     weekly_data_list = [
                         json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload']
