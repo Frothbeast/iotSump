@@ -41,6 +41,10 @@ def cl1p():
     global cl1pURL
     global cl1pToken
 
+    url = cl1pURL
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
+
     try:
         if location == "home":
             try:
