@@ -49,6 +49,7 @@ def cl1p():
                 sys.stderr.write(f"Download error: {e}\n")
             sys.stderr.write("Successfully removed cl1p.\n")
             try:
+                conn_db = mysql.connector.connect(**db_config)
                 cursor_fetch = conn_db.cursor(dictionary=True)
                 week_query = f"""
                     SELECT payload 
