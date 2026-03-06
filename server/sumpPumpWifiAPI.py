@@ -19,7 +19,11 @@ load_dotenv()
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
 CORS(app)
+
 location = os.getenv('LOCATION')
+cl1pToken = os.getenv('CL1P_TOKEN')
+cl1pURL = os.getenv('CL1P_URL')
+
 sys.stderr.write(f"DEBUG: Current location environment variable: {location}\n")
 sys.stderr.flush()
 db_config = {
@@ -30,6 +34,88 @@ db_config = {
 }
 
 cl1pURL = os.getenv('CL1P_URL')
+
+@app.route('/api/cl1p', methods=['POST'])
+def cl1p():
+    global location
+    global cl1pURL
+    global cl1pToken
+
+    try:
+        if location == "home":
+            try:
+                response = requests.get(url, headers=headers, verify=False)
+            except Exception as e:
+                sys.stderr.write(f"Download error: {e}\n")
+            sys.stderr.write("Successfully removed cl1p.\n")
+            try:
+                cursor_fetch = conn_db.cursor(dictionary=True)
+                week_query = f"""
+                    SELECT payload 
+                    FROM {db_config['database']}.sumpData 
+                    WHERE payload->>'$.datetime' >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                """
+                cursor_fetch.execute(week_query)
+                rows = cursor_fetch.fetchall()
+                if rows:
+                    weekly_data_list = [
+                        json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload']
+                        for row in rows]
+                    raw_text_payload = json.dumps(weekly_data_list)
+                    sys.stderr.write(f"DEBUG: Sending to cl1p: {raw_text_payload[:500]}...\n")
+                    sys.stderr.flush()
+                response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
+                if 200 <= response.status_code < 300:
+                    sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} rows to cl1p.\n")
+                else:
+                    sys.stderr.write(f"Push failed: {response.status_code} - {response.text}\n")
+            except Exception as e:
+                sys.stderr.write(f"Upload error: {e}\n")
+            sys.stderr.write("DEBUG: Button was clicked, code is running\n")
+            sys.stderr.flush()
+            return '', 204
+        elif location == "work":
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            url = cl1pURL
+            cl1pToken = os.getenv('CL1P_TOKEN')
+            headers = {"cl1papitoken": cl1pToken}
+            try:
+                response = requests.get(url, headers=headers, verify=False)
+                if response.status_code == 200:
+                    raw_text = response.text
+                    sys.stderr.write(f"DEBUG: Received from cl1p: {raw_text[:500]}...\n")
+                    try:
+                        cl1p_payloads = json.loads(raw_text)
+                        if isinstance(cl1p_payloads, list) and len(cl1p_payloads) > 0:
+                            conn = mysql.connector.connect(**db_config)
+                            cursor = conn.cursor()
+                            new_count = 0
+                            for item in cl1p_payloads:
+                                dt_val = item.get('datetime')
+                                if dt_val:
+                                    check_query = f"SELECT COUNT(*) FROM {db_config['database']}.sumpData WHERE payload->>'$.datetime' = %s"
+                                    cursor.execute(check_query, (dt_val,))
+                                    if cursor.fetchone()[0] == 0:
+                                        insert_query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
+                                        cursor.execute(insert_query, (json.dumps(item),))
+                                        new_count += 1
+                            conn.commit()
+                            sys.stderr.write(f"DEBUG: Successfully imported {new_count} new rows\n")
+                    except json.JSONDecodeError as e:
+                        sys.stderr.write(f"ERROR: JSON Decode Failed: {str(e)}\n")
+                        sys.stderr.write(f"OFFENDING CONTENT: {raw_text[:200]}\n")
+                    finally:
+                        if 'cursor' in locals(): cursor.close()
+                        if 'conn' in locals(): conn.close()
+                else:
+                    sys.stderr.write(f"DEBUG: Failed to retrieve data. Status: {response.status_code}\n")
+                    sys.stderr.flush()
+            except Exception as e:
+                sys.stderr.write(f"Download error: {e}\n")
+    except Exception as e:
+        sys.stderr.write(f"DEBUG: Action failed: {e}\n")
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/time', methods=['GET'])
 def get_time():
@@ -50,54 +136,7 @@ def serve(path):
 
 @app.route('/api/sumpData', methods=['GET'])
 def get_sump_data():
-  global lastRunTime
   global location
-  if location == 'work':
-    now = datetime.now()
-    if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
-      urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-      url = cl1pURL
-      cl1pToken = os.getenv('CL1P_TOKEN')
-      headers = {"cl1papitoken": cl1pToken}
-      try:
-        response = requests.get(url, headers=headers, verify=False)
-        if response.status_code == 200:
-          raw_text = response.text
-          sys.stderr.write(f"DEBUG: Received from cl1p: {raw_text[:500]}...\n")
-          try:
-            cl1p_payloads = json.loads(raw_text)
-            if isinstance(cl1p_payloads, list) and len(cl1p_payloads) > 0:
-              conn = mysql.connector.connect(**db_config)
-              cursor = conn.cursor()
-
-              new_count = 0
-              for item in cl1p_payloads:
-                dt_val = item.get('datetime')
-                if dt_val:
-                  check_query = f"SELECT COUNT(*) FROM {db_config['database']}.sumpData WHERE payload->>'$.datetime' = %s"
-                  cursor.execute(check_query, (dt_val,))
-                  if cursor.fetchone()[0] == 0:
-                    insert_query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
-                    cursor.execute(insert_query, (json.dumps(item),))
-                    new_count += 1
-
-              conn.commit()
-              lastRunTime = now
-              sys.stderr.write(f"DEBUG: Successfully imported {new_count} new rows\n")
-          except json.JSONDecodeError as e:
-            sys.stderr.write(f"ERROR: JSON Decode Failed: {str(e)}\n")
-            sys.stderr.write(f"OFFENDING CONTENT: {raw_text[:200]}\n")
-          finally:
-            if 'cursor' in locals(): cursor.close()
-            if 'conn' in locals(): conn.close()
-
-        else:
-          sys.stderr.write(f"DEBUG: Failed to retrieve data. Status: {response.status_code}\n")
-          sys.stderr.flush()
-      except Exception as e:
-        sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
-        sys.stderr.flush()
-
   try:
     hours = request.args.get('hours', default=24, type=int)
 
