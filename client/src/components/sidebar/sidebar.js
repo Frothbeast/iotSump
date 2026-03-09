@@ -10,7 +10,8 @@ ChartJS.register(...registerables, zoomPlugin);
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
 
-  const sidebarChartOptions = useMemo(() => ({
+  // This base configuration is memoized so it only changes if the timeUnit changes
+  const baseOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -28,6 +29,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
       },
       zoom: {
         limits: {
+          // Setting these to 'original' helps the plugin respect the zoomed state
           x: { min: 'original', max: 'original' },
           y: { min: 'original', max: 'original' }
         },
@@ -44,6 +46,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           },
           mode: 'xy',
           onZoomComplete: ({ chart }) => {
+            // Force update without reframing
             chart.update('none');
           }
         }
@@ -82,6 +85,12 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
     }
   }), [timeUnit]);
 
+  // FIX: Each chart gets a unique, stable reference
+  const opt1 = useMemo(() => ({ ...baseOptions }), [baseOptions]);
+  const opt2 = useMemo(() => ({ ...baseOptions }), [baseOptions]);
+  const opt3 = useMemo(() => ({ ...baseOptions }), [baseOptions]);
+  const opt4 = useMemo(() => ({ ...baseOptions }), [baseOptions]);
+
   const transitionStyle = {
     transition: 'width 2s cubic-bezier(0.4, 0, 0.2, 1)',
     willChange: 'width'
@@ -95,8 +104,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{ label: "Low ADC Value", color: "lightblue", backgroundColor: "black", data: sumpRecords.map(r => r.payload?.Ladc) },
                       { label: "High ADC Value", color: "lightgreen", backgroundColor: "black", data: sumpRecords.map(r => r.payload?.Hadc) }]}
-            // Spread into a new object to give this instance its own reference
-            options={{ ...sidebarChartOptions }}
+            options={opt1}
           />
         </div>
         <div className="chartContainer" style={transitionStyle}>
@@ -114,14 +122,14 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
                 backgroundColor: "black"
               }
             ]}
-            options={{ ...sidebarChartOptions }}
+            options={opt2}
           />
         </div>
         <div className="chartContainer" style={transitionStyle}>
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{ label: "Duty Cycle", color: "lavender", backgroundColor: "black", data: sumpRecords.map(r => r.payload?.duty) }]}
-            options={{ ...sidebarChartOptions }}
+            options={opt3}
           />
         </div>
         <div className="chartContainer" style={transitionStyle}>
@@ -136,7 +144,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
               })
             }
             ]}
-            options={{ ...sidebarChartOptions }}
+            options={opt4}
           />
         </div>
       </div>

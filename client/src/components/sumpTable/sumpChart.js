@@ -22,10 +22,12 @@ const SumpChart = ({ datasets, labels, options }) => {
         }
       });
 
-      // Update options
-      chartInstance.current.options = options;
+      // Update options only if necessary
+      if (chartInstance.current.options !== options) {
+        chartInstance.current.options = options;
+      }
 
-      // CHANGE: Use 'none' mode to prevent the chart from reframing/resetting scales
+      // CHANGE: Use 'none' mode to prevent the chart from reframing
       chartInstance.current.update('none');
     } else {
       chartInstance.current = new Chart(ctx, {
