@@ -25,6 +25,10 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           }
         },
         zoom: {
+          limits: {
+            x: {min: 'original', max: 'original'},
+            y: {min: 'original', max: 'original'}
+          },
           zoom:{
             wheel: {
               enabled: true,
@@ -50,7 +54,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           display: true,
           reverse: false,
           ticks: {
-            maxTicksLimit: 8, 
+            maxTicksLimit: 8,
             autoSkip: true,
             color: 'grey'
           },
