@@ -9,18 +9,6 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
       legend: {
         display: false
       },
-      zoom: {
-        zoom:{
-          wheel: {
-            enabled: true,
-            },
-            pinch: {
-              enabled: true
-            },
-            mode: 'xy',
-        }
-      }
-
     },
     layout: {
       padding: 0

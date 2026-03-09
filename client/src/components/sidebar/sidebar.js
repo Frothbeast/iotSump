@@ -24,6 +24,17 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             color: 'lightgrey'
           }
         }
+        zoom: {
+          zoom:{
+            wheel: {
+              enabled: true,
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'xy',
+          }
+        }
       },
       scales: {
         x: {
