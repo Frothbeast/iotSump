@@ -12,6 +12,7 @@ const SumpChart = ({ datasets, labels, options }) => {
     const ctx = chartRef.current.getContext('2d');
 
     if (chartInstance.current) {
+      // Update data references
       chartInstance.current.data.labels = labels;
       datasets.forEach((ds, index) => {
         if (chartInstance.current.data.datasets[index]) {
@@ -20,10 +21,13 @@ const SumpChart = ({ datasets, labels, options }) => {
           chartInstance.current.data.datasets[index].borderColor = ds.color;
         }
       });
-      chartInstance.current.options = options;
-      chartInstance.current.update();
-    } else {
 
+      // Update options
+      chartInstance.current.options = options;
+
+      // CHANGE: Use 'none' mode to prevent the chart from reframing/resetting scales
+      chartInstance.current.update('none');
+    } else {
       chartInstance.current = new Chart(ctx, {
         type: 'line',
         data: {
