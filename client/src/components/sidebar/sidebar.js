@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { useMemo } from 'react'; // Added useMemo
 import SumpChart from '../sumpTable/sumpChart';
-import './sidebar.css'; 
+import './sidebar.css';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
+import zoomPlugin from 'chartjs-plugin-zoom'; // Ensure this is imported and registered
 
-ChartJS.register(...registerables);
+ChartJS.register(...registerables, zoomPlugin);
 
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
-  const sidebarChartOptions = {
+
+  // useMemo prevents the options object from being "new" on every render
+  // unless selectedHours or timeUnit actually changes.
+  const sidebarChartOptions = useMemo(() => ({
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -25,18 +29,23 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           }
         },
         zoom: {
-          limits: {
-            x: {min: 'original', max: 'original'},
-            y: {min: 'original', max: 'original'}
+          pan: {
+            enabled: true,
+            mode: 'xy',
           },
-          zoom:{
+          zoom: {
             wheel: {
               enabled: true,
-              },
-              pinch: {
-                enabled: true
-              },
-              mode: 'xy',
+            },
+            pinch: {
+              enabled: true
+            },
+            mode: 'xy',
+            // This callback can help lock the state if the plugin
+            // is fighting with React's render cycle
+            onZoomComplete: ({chart}) => {
+              chart.update('none');
+            }
           }
         }
       },
@@ -58,17 +67,20 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             autoSkip: true,
             color: 'grey'
           },
-	  grid: {
-	    color: 'rgba(255, 255, 255, 0.42)'
-	  }
+          grid: {
+            color: 'rgba(255, 255, 255, 0.42)'
+          }
         },
-        y: { display: true, ticks: {color: 'grey'}, grace: '10%',grid: {
+        y: {
+          display: true,
+          ticks: {color: 'grey'},
+          grace: '10%',
+          grid: {
             color: 'rgba(255, 255, 255, 0.42)'
           }
         }
       }
-
-    };
+    }), [timeUnit]); // Only re-calculate if the timeUnit changes
 
   const transitionStyle = {
     transition: 'width 2s cubic-bezier(0.4, 0, 0.2, 1)',
