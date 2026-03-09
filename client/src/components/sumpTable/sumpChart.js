@@ -27,8 +27,17 @@ const SumpChart = ({ datasets, labels, options }) => {
         chartInstance.current.options = options;
       }
 
-      // CHANGE: Use 'none' mode to prevent the chart from reframing
-      chartInstance.current.update('none');
+      // Logic to determine if we should reframe or stay locked
+      // isZoomedOrPanned checks if the user has changed the view
+      const isZoomed = chartInstance.current.isZoomedOrPanned?.();
+
+      if (isZoomed) {
+        // Maintain the current zoom/pan window even if data is added
+        chartInstance.current.update('none');
+      } else {
+        // Zoomed all the way out: update normally so the x-axis expands with new data
+        chartInstance.current.update();
+      }
     } else {
       chartInstance.current = new Chart(ctx, {
         type: 'line',
