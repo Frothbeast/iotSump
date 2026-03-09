@@ -10,8 +10,6 @@ ChartJS.register(...registerables, zoomPlugin);
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
 
-  // useMemo with an empty dependency array or specific triggers ensures
-  // the object reference is stable across renders.
   const sidebarChartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -30,8 +28,6 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
       },
       zoom: {
         limits: {
-          // Setting these to 'original' tells the plugin to respect
-          // the current zoomed state during data updates.
           x: { min: 'original', max: 'original' },
           y: { min: 'original', max: 'original' }
         },
@@ -48,7 +44,6 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           },
           mode: 'xy',
           onZoomComplete: ({ chart }) => {
-            // Force the chart to recognize the new state without a full re-render
             chart.update('none');
           }
         }
@@ -85,7 +80,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         }
       }
     }
-  }), [timeUnit]); // Only re-create if the timeUnit specifically changes
+  }), [timeUnit]);
 
   const transitionStyle = {
     transition: 'width 2s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -100,7 +95,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{ label: "Low ADC Value", color: "lightblue", backgroundColor: "black", data: sumpRecords.map(r => r.payload?.Ladc) },
                       { label: "High ADC Value", color: "lightgreen", backgroundColor: "black", data: sumpRecords.map(r => r.payload?.Hadc) }]}
-            options={sidebarChartOptions}
+            // Spread into a new object to give this instance its own reference
+            options={{ ...sidebarChartOptions }}
           />
         </div>
         <div className="chartContainer" style={transitionStyle}>
@@ -118,14 +114,14 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
                 backgroundColor: "black"
               }
             ]}
-            options={sidebarChartOptions}
+            options={{ ...sidebarChartOptions }}
           />
         </div>
         <div className="chartContainer" style={transitionStyle}>
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{ label: "Duty Cycle", color: "lavender", backgroundColor: "black", data: sumpRecords.map(r => r.payload?.duty) }]}
-            options={sidebarChartOptions}
+            options={{ ...sidebarChartOptions }}
           />
         </div>
         <div className="chartContainer" style={transitionStyle}>
@@ -140,7 +136,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
               })
             }
             ]}
-            options={sidebarChartOptions}
+            options={{ ...sidebarChartOptions }}
           />
         </div>
       </div>
