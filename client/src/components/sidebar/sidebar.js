@@ -9,7 +9,6 @@ ChartJS.register(...registerables, zoomPlugin);
 
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
-
   // This base configuration is memoized so it only changes if the timeUnit changes
   const baseOptions = useMemo(() => ({
     responsive: true,

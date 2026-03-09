@@ -7,6 +7,8 @@ Chart.register(zoomPlugin);
 const SumpChart = ({ datasets, labels, options }) => {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
+  // Keep track of previous options to detect scale changes
+  const prevOptionsRef = useRef(options);
 
   useEffect(() => {
     const ctx = chartRef.current.getContext('2d');
@@ -22,22 +24,26 @@ const SumpChart = ({ datasets, labels, options }) => {
         }
       });
 
-      // Update options only if necessary
-      if (chartInstance.current.options !== options) {
+      // Detect if options changed (e.g., timeUnit changed from 'minute' to 'hour')
+      const optionsChanged = prevOptionsRef.current !== options;
+      prevOptionsRef.current = options;
+
+      if (optionsChanged) {
         chartInstance.current.options = options;
       }
 
-      // Logic to determine if we should reframe or stay locked
-      // isZoomedOrPanned checks if the user has changed the view
       const isZoomed = chartInstance.current.isZoomedOrPanned?.();
 
-      if (isZoomed) {
-        // Maintain the current zoom/pan window even if data is added
-        chartInstance.current.update('none');
-      } else {
-        // Zoomed all the way out: update normally so the x-axis expands with new data
+      // If options changed (new hour selection) OR we aren't zoomed in,
+      // do a full update to re-scale the axes.
+      if (optionsChanged || !isZoomed) {
         chartInstance.current.update();
+      } else {
+        // If we are zoomed in and just receiving new data points for the same scale,
+        // use 'none' to maintain the user's current zoom window.
+        chartInstance.current.update('none');
       }
+
     } else {
       chartInstance.current = new Chart(ctx, {
         type: 'line',
@@ -57,6 +63,7 @@ const SumpChart = ({ datasets, labels, options }) => {
         },
         options: options
       });
+      prevOptionsRef.current = options;
     }
 
   }, [datasets, labels, options]);
