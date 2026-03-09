@@ -23,7 +23,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             font: {size: 22},
             color: 'lightgrey'
           }
-        }
+        },
         zoom: {
           zoom:{
             wheel: {
