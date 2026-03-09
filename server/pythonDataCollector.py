@@ -116,46 +116,6 @@ def start_collector():
                         query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
                         cursor.execute(query, (json.dumps(payload_dict),))
                         conn_db.commit()
-
-                        if location == 'home':
-                            now = datetime.now()
-                            if lastRunTime is None or now >= (lastRunTime + timedelta(hours=2)):
-                                cursor_fetch = conn_db.cursor(dictionary=True)
-                                week_query = f"""
-                                    SELECT payload 
-                                    FROM {db_config['database']}.sumpData 
-                                    WHERE payload->>'$.datetime' >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-                                """
-                                # Corrected indentation for query execution and results handling
-                                cursor_fetch.execute(week_query)
-                                rows = cursor_fetch.fetchall()
-                                if rows:
-                                    weekly_data_list = [
-                                        json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload']
-                                        for row in rows]
-                                    raw_text_payload = json.dumps(weekly_data_list)
-                                    sys.stderr.write(f"DEBUG: Sending to cl1p: {raw_text_payload[:500]}...\n")
-                                    sys.stderr.flush()
-                                    url = cl1pURL
-                                    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-                                    headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
-                                    try:
-                                        response = requests.get(url, headers=headers, verify=False)
-                                    except Exception as e:
-                                        sys.stderr.write(f"Upload error: {e}\n response:{response}\n")
-                                    sys.stderr.write("Successfully removed cl1p.\n")
-                                    try:
-                                        response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
-                                        lastRunTime = now
-                                        if 200 <= response.status_code < 300:
-                                            sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} rows to cl1p.\n")
-                                        else:
-                                            sys.stderr.write(f"Push failed: {response.status_code} - {response.text}\n")
-                                    except Exception as e:
-                                        sys.stderr.write(f"Upload error: {e}\n")
-                                else:
-                                    sys.stderr.write("DEBUG: SQL returned 0 rows for the last 7 days.\n")
-                                cursor_fetch.close()
                         sys.stderr.flush()
                         cursor.close()
                         conn_db.close()

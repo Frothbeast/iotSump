@@ -15,6 +15,22 @@ function App() {
 
   const [serverTime, setServerTime] = useState("00:00 AM");
 
+  const cl1pClick = async () => {
+    try{
+      const response = await fetch('/api/cl1p', {method: 'POST',});
+      if (response.status === 204) {
+          console.log("Action acknowledged by server.");
+          // Optional: Show a temporary "Success" toast/message on the UI
+      }
+      else {
+        console.error("Server returned an error");
+      }
+    }
+    catch (error) {
+      console.error("Fetch error:", error);
+    }
+  };
+
   const updateTime = () => {
     fetch('/api/time')
       .then(res => res.json())
@@ -35,6 +51,7 @@ function App() {
       <ControlBar
         selectedHours={selectedHours}
         onHoursChange={setSelectedHours}
+        cl1pClick={cl1pClick}
         columnStats={columnStats}
         sumpRecords={sumpRecords} // Pass raw data for charts
         toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
