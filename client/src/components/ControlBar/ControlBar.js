@@ -18,9 +18,9 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
               enabled: true
             },
             mode: 'xy',
-          }
         }
       }
+
     },
     layout: {
       padding: 0
