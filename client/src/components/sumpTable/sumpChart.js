@@ -1,5 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
+import zoomPlugin from 'chartjs-plugin-zoom';
+
+Chart.register(zoomPlugin);
 
 const SumpChart = ({ datasets, labels, options }) => {
   const chartRef = useRef(null);
