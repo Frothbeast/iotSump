@@ -8,10 +8,7 @@ const SumpChart = ({ datasets, labels, options }) => {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
   const prevOptionsRef = useRef(options);
-  // Tracks if hours changed while we were zoomed in
   const isDirtyRef = useRef(false);
-  // Tracks if we have already handled the snap-back for the current zoom session
-  const hasSnappedRef = useRef(true);
 
   useEffect(() => {
     if (chartInstance.current) {
@@ -21,15 +18,14 @@ const SumpChart = ({ datasets, labels, options }) => {
       if (optionsChanged) {
         prevOptionsRef.current = options;
         isDirtyRef.current = true;
+        // Inject new options into the instance so the resetZoom can find them later
+        chartInstance.current.options = options;
       }
 
-      if (isZoomed) {
-        // We are zoomed in; mark that we need a snap when we eventually zoom out
-        hasSnappedRef.current = false;
-        return;
-      }
+      // WHILE ZOOMED: Do nothing.
+      if (isZoomed) return;
 
-      // If NOT zoomed, and we haven't snapped to current data yet
+      // NOT ZOOMED: Sync data
       chartInstance.current.data.labels = labels;
       datasets.forEach((ds, index) => {
         if (chartInstance.current.data.datasets[index]) {
@@ -39,16 +35,13 @@ const SumpChart = ({ datasets, labels, options }) => {
         }
       });
 
-      chartInstance.current.options = options;
-
-      // Only reset the zoom cache if a setting change happened or we are returning from zoom
-      if (isDirtyRef.current || !hasSnappedRef.current) {
+      // If hours changed while zoomed out, or we have a pending update
+      if (isDirtyRef.current) {
         if (chartInstance.current.resetZoom) {
           chartInstance.current.resetZoom('none');
         }
         chartInstance.current.update();
         isDirtyRef.current = false;
-        hasSnappedRef.current = true;
       } else {
         chartInstance.current.update('none');
       }
@@ -69,31 +62,37 @@ const SumpChart = ({ datasets, labels, options }) => {
             tension: 0.4
           }))
         },
-        options: options
+        options: {
+          ...options,
+          plugins: {
+            ...options.plugins,
+            zoom: {
+              ...options.plugins.zoom,
+              zoom: {
+                ...options.plugins.zoom.zoom,
+                onZoomComplete: ({ chart }) => {
+                  // Only reset if we are completely zoomed out
+                  if (!chart.isZoomedOrPanned()) {
+                    chart.resetZoom('none');
+                    chart.update();
+                  }
+                }
+              },
+              pan: {
+                ...options.plugins.zoom.pan,
+                onPanComplete: ({ chart }) => {
+                  if (!chart.isZoomedOrPanned()) {
+                    chart.resetZoom('none');
+                    chart.update();
+                  }
+                }
+              }
+            }
+          }
+        }
       });
     }
   }, [datasets, labels, options]);
-
-  // Use a targeted interval to check for the "Snap Back" moment
-  useEffect(() => {
-    const checkZoom = setInterval(() => {
-      if (chartInstance.current) {
-        const isCurrentlyZoomed = chartInstance.current.isZoomedOrPanned?.();
-
-        // If the user just reached "Zoom = Out" and we haven't snapped yet
-        if (!isCurrentlyZoomed && !hasSnappedRef.current) {
-          if (chartInstance.current.resetZoom) {
-            chartInstance.current.resetZoom('none');
-          }
-          chartInstance.current.update();
-          hasSnappedRef.current = true;
-          isDirtyRef.current = false;
-        }
-      }
-    }, 400);
-
-    return () => clearInterval(checkZoom);
-  }, []);
 
   useEffect(() => {
     return () => {
