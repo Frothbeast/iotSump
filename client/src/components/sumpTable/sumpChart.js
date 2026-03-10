@@ -13,36 +13,52 @@ const SumpChart = ({ datasets, labels, options }) => {
     const ctx = chartRef.current.getContext('2d');
 
     if (chartInstance.current) {
-      // Update data references
-      chartInstance.current.data.labels = labels;
-      datasets.forEach((ds, index) => {
-        if (chartInstance.current.data.datasets[index]) {
-          chartInstance.current.data.datasets[index].data = ds.data;
-          chartInstance.current.data.datasets[index].label = ds.label;
-          chartInstance.current.data.datasets[index].borderColor = ds.color;
-        }
-      });
-
+      // 1. Detect if the hour selection changed
       const optionsChanged = prevOptionsRef.current !== options;
       prevOptionsRef.current = options;
 
+      // 2. Update data and labels
+      chartInstance.current.data.labels = labels;
+
+      // If the hours changed, we re-map the datasets entirely
+      // to ensure Chart.js recognizes the new array lengths
       if (optionsChanged) {
+        chartInstance.current.data.datasets = datasets.map(ds => ({
+          label: ds.label,
+          data: ds.data,
+          borderColor: ds.color,
+          backgroundColor: ds.backgroundColor,
+          borderWidth: 2,
+          pointRadius: 1,
+          pointStyle: 'circle',
+          fill: false,
+          tension: 0.4
+        }));
+
         chartInstance.current.options = options;
-        // FIX: If the user changes the hour selection, we must reset the zoom state
-        // so the chart can properly map the new time range to the full canvas.
+
+        // Reset zoom so the new data fills the screen
         if (chartInstance.current.resetZoom) {
-            chartInstance.current.resetZoom();
+          chartInstance.current.resetZoom('none');
         }
-      }
 
-      const isZoomed = chartInstance.current.isZoomedOrPanned?.();
-
-      if (optionsChanged || !isZoomed) {
+        // Force full update to parse the new data
         chartInstance.current.update();
       } else {
-        chartInstance.current.update('none');
-      }
+        // Standard data update (new records arriving)
+        datasets.forEach((ds, index) => {
+          if (chartInstance.current.data.datasets[index]) {
+            chartInstance.current.data.datasets[index].data = ds.data;
+          }
+        });
 
+        const isZoomed = chartInstance.current.isZoomedOrPanned?.();
+        if (!isZoomed) {
+          chartInstance.current.update();
+        } else {
+          chartInstance.current.update('none');
+        }
+      }
     } else {
       chartInstance.current = new Chart(ctx, {
         type: 'line',

@@ -109,18 +109,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[
-              {
-                label: "Pump On time(s)",
-                color: "pink",
-                data: sumpRecords.map(r => r.payload?.timeOn),
-                backgroundColor: "black"
-              },
-              {
-                label: "Pump Off Time(s)",
-                color: "red",
-                data: sumpRecords.map(r => r.payload?.timeOff),
-                backgroundColor: "black"
-              }
+              { label: "Pump On time(s)", color: "pink", data: sumpRecords.map(r => r.payload?.timeOn), backgroundColor: "black" },
+              { label: "Pump Off Time(s)", color: "red", data: sumpRecords.map(r => r.payload?.timeOff), backgroundColor: "black" }
             ]}
             options={opt2}
           />
