@@ -8,7 +8,8 @@ const SumpChart = ({ datasets, labels, options }) => {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
   const prevOptionsRef = useRef(options);
-  const needsScaleUpdateRef = useRef(false);
+  // This ref tracks if a change in hours occurred while the user was zoomed in
+  const pendingUpdateRef = useRef(false);
 
   useEffect(() => {
     const ctx = chartRef.current.getContext('2d');
@@ -17,35 +18,32 @@ const SumpChart = ({ datasets, labels, options }) => {
       const optionsChanged = prevOptionsRef.current !== options;
       prevOptionsRef.current = options;
 
-      // 1. Always update data points in the background
+      const isZoomed = chartInstance.current.isZoomedOrPanned?.();
+
+      // IF ZOOMED: Do absolutely nothing.
+      // Do not update data, do not update labels, do not update options.
+      // This prevents the data from being "cut off" when hours are reduced background.
+      if (isZoomed) {
+        if (optionsChanged) {
+          pendingUpdateRef.current = true;
+        }
+        return;
+      }
+
+      // IF NOT ZOOMED: Update everything to match current settings.
       chartInstance.current.data.labels = labels;
       datasets.forEach((ds, index) => {
         if (chartInstance.current.data.datasets[index]) {
           chartInstance.current.data.datasets[index].data = ds.data;
+          chartInstance.current.data.datasets[index].label = ds.label;
+          chartInstance.current.data.datasets[index].borderColor = ds.color;
         }
       });
 
-      const isZoomed = chartInstance.current.isZoomedOrPanned?.();
+      chartInstance.current.options = options;
+      chartInstance.current.update();
+      pendingUpdateRef.current = false;
 
-      if (optionsChanged) {
-        chartInstance.current.options = options;
-        if (isZoomed) {
-          // 2. Mark that we need a full refresh once the user zooms out
-          needsScaleUpdateRef.current = true;
-          chartInstance.current.update('none');
-        } else {
-          // 3. Not zoomed? Update immediately
-          chartInstance.current.update();
-          needsScaleUpdateRef.current = false;
-        }
-      } else {
-        // Regular data stream update
-        if (isZoomed) {
-          chartInstance.current.update('none');
-        } else {
-          chartInstance.current.update();
-        }
-      }
     } else {
       chartInstance.current = new Chart(ctx, {
         type: 'line',
@@ -65,8 +63,8 @@ const SumpChart = ({ datasets, labels, options }) => {
         },
         options: options
       });
-      // Attach the reference to the instance so the plugin hook can see it
-      chartInstance.current.needsScaleUpdate = needsScaleUpdateRef;
+      // Attach the flag to the instance so the zoom plugin hook can see it
+      chartInstance.current.pendingUpdate = pendingUpdateRef;
     }
   }, [datasets, labels, options]);
 

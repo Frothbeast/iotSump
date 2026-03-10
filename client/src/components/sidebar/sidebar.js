@@ -28,18 +28,13 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           pinch: { enabled: true },
           mode: 'xy',
           onZoomComplete: ({ chart }) => {
-            // Check if we are back at 1x zoom
-            const isZoomed = chart.isZoomedOrPanned();
-
-            // If we are unzoomed AND there was a pending scale change (from changing hours),
-            // trigger the full update now.
-            if (!isZoomed && chart.needsScaleUpdate?.current) {
+            // Only when the user is completely unzoomed (1x)
+            if (!chart.isZoomedOrPanned()) {
+              // We force a resetZoom to clear any cached "original" scale limits
+              chart.resetZoom('none');
+              // We trigger the update to catch up with the background data
               chart.update();
-              chart.needsScaleUpdate.current = false;
-            } else if (!isZoomed) {
-              chart.update();
-            } else {
-              chart.update('none');
+              if (chart.pendingUpdate) chart.pendingUpdate.current = false;
             }
           }
         }
