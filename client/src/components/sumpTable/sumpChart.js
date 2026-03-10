@@ -18,14 +18,11 @@ const SumpChart = ({ datasets, labels, options }) => {
       if (optionsChanged) {
         prevOptionsRef.current = options;
         isDirtyRef.current = true;
-        // Inject new options into the instance so the resetZoom can find them later
         chartInstance.current.options = options;
       }
 
-      // WHILE ZOOMED: Do nothing.
       if (isZoomed) return;
 
-      // NOT ZOOMED: Sync data
       chartInstance.current.data.labels = labels;
       datasets.forEach((ds, index) => {
         if (chartInstance.current.data.datasets[index]) {
@@ -35,7 +32,6 @@ const SumpChart = ({ datasets, labels, options }) => {
         }
       });
 
-      // If hours changed while zoomed out, or we have a pending update
       if (isDirtyRef.current) {
         if (chartInstance.current.resetZoom) {
           chartInstance.current.resetZoom('none');
@@ -71,7 +67,6 @@ const SumpChart = ({ datasets, labels, options }) => {
               zoom: {
                 ...options.plugins.zoom.zoom,
                 onZoomComplete: ({ chart }) => {
-                  // Only reset if we are completely zoomed out
                   if (!chart.isZoomedOrPanned()) {
                     chart.resetZoom('none');
                     chart.update();
