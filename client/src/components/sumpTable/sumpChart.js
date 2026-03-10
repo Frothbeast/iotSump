@@ -7,7 +7,7 @@ Chart.register(zoomPlugin);
 const SumpChart = ({ datasets, labels, options }) => {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
-  // Keep track of previous options to detect scale changes
+  // Track previous options to detect when selectedHours/timeUnit changes
   const prevOptionsRef = useRef(options);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ const SumpChart = ({ datasets, labels, options }) => {
         }
       });
 
-      // Detect if options changed (e.g., timeUnit changed from 'minute' to 'hour')
+      // Check if the options object itself changed (meaning new hours selected)
       const optionsChanged = prevOptionsRef.current !== options;
       prevOptionsRef.current = options;
 
@@ -34,13 +34,12 @@ const SumpChart = ({ datasets, labels, options }) => {
 
       const isZoomed = chartInstance.current.isZoomedOrPanned?.();
 
-      // If options changed (new hour selection) OR we aren't zoomed in,
-      // do a full update to re-scale the axes.
+      // If hours changed, ALWAYS do a full update to reset axes to the new data range.
+      // Otherwise, only do a full update if we are zoomed out (to follow new data).
       if (optionsChanged || !isZoomed) {
         chartInstance.current.update();
       } else {
-        // If we are zoomed in and just receiving new data points for the same scale,
-        // use 'none' to maintain the user's current zoom window.
+        // Zoomed in and hours haven't changed: update 'none' to stay locked.
         chartInstance.current.update('none');
       }
 

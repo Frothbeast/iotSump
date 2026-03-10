@@ -9,7 +9,7 @@ ChartJS.register(...registerables, zoomPlugin);
 
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
-  // This base configuration is memoized so it only changes if the timeUnit changes
+
   const baseOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -28,7 +28,6 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
       },
       zoom: {
         limits: {
-          // Setting these to 'original' helps the plugin respect the zoomed state
           x: { min: 'original', max: 'original' },
           y: { min: 'original', max: 'original' }
         },
@@ -45,7 +44,6 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           },
           mode: 'xy',
           onZoomComplete: ({ chart }) => {
-            // Force update without reframing
             chart.update('none');
           }
         }
@@ -84,7 +82,6 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
     }
   }), [timeUnit]);
 
-  // FIX: Each chart gets a unique, stable reference
   const opt1 = useMemo(() => ({ ...baseOptions }), [baseOptions]);
   const opt2 = useMemo(() => ({ ...baseOptions }), [baseOptions]);
   const opt3 = useMemo(() => ({ ...baseOptions }), [baseOptions]);
@@ -101,8 +98,10 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         <div className="chartContainer" style={transitionStyle}>
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
-            datasets={[{ label: "Low ADC Value", color: "lightblue", backgroundColor: "black", data: sumpRecords.map(r => r.payload?.Ladc) },
-                      { label: "High ADC Value", color: "lightgreen", backgroundColor: "black", data: sumpRecords.map(r => r.payload?.Hadc) }]}
+            datasets={[
+              { label: "Low ADC Value", color: "lightblue", backgroundColor: "black", data: sumpRecords.map(r => r.payload?.Ladc) },
+              { label: "High ADC Value", color: "lightgreen", backgroundColor: "black", data: sumpRecords.map(r => r.payload?.Hadc) }
+            ]}
             options={opt1}
           />
         </div>
@@ -110,12 +109,14 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[
-              { label: "Pump On time(s)",
+              {
+                label: "Pump On time(s)",
                 color: "pink",
                 data: sumpRecords.map(r => r.payload?.timeOn),
                 backgroundColor: "black"
               },
-              { label: "Pump Off Time(s)",
+              {
+                label: "Pump Off Time(s)",
                 color: "red",
                 data: sumpRecords.map(r => r.payload?.timeOff),
                 backgroundColor: "black"
@@ -135,14 +136,15 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           <SumpChart
             labels={sumpRecords.map(r => r.payload?.datetime)}
             datasets={[{
-              label: "Minutes between pumps", color: "cyan", backgroundColor: "black",
+              label: "Minutes between pumps",
+              color: "cyan",
+              backgroundColor: "black",
               data: sumpRecords.slice(1).map((r, i) => {
                 const current = new Date(r.payload?.datetime).getTime();
                 const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
                 return (previous - current) / 60000;
               })
-            }
-            ]}
+            }]}
             options={opt4}
           />
         </div>
