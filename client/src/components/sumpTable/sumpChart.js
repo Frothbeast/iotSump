@@ -56,7 +56,9 @@ const SumpChart = ({ datasets, labels, options }) => {
             borderColor: ds.color,
             backgroundColor: "black",
             borderWidth: 2,
-            pointRadius: 1,
+            // pointRadius: 1,
+            pointRadius: 0, // Points hidden by default
+            pointHoverRadius: 5, // Points appear on hover
             fill: false,
             tension: 0.4
           }))
