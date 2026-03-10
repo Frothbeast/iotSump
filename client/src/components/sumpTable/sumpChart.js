@@ -9,6 +9,8 @@ const SumpChart = ({ datasets, labels, options }) => {
   const chartInstance = useRef(null);
   const prevOptionsRef = useRef(options);
   const isDirtyRef = useRef(false);
+  // Guard to prevent infinite update loops
+  const isResettingRef = useRef(false);
 
   useEffect(() => {
     if (chartInstance.current) {
@@ -21,6 +23,7 @@ const SumpChart = ({ datasets, labels, options }) => {
         chartInstance.current.options = options;
       }
 
+      // If zoomed, block all updates to preserve the zoomed window and its data
       if (isZoomed) return;
 
       chartInstance.current.data.labels = labels;
@@ -67,18 +70,28 @@ const SumpChart = ({ datasets, labels, options }) => {
               zoom: {
                 ...options?.plugins?.zoom?.zoom,
                 onZoomComplete: ({ chart }) => {
-                  if (!chart.isZoomedOrPanned()) {
-                    chart.resetZoom('none');
-                    chart.update();
+                  // If we are back at 1x and not already in a reset cycle
+                  if (!chart.isZoomedOrPanned() && !isResettingRef.current) {
+                    isResettingRef.current = true;
+                    // Timeout breaks the execution stack to prevent infinite loops
+                    setTimeout(() => {
+                      chart.resetZoom('none');
+                      chart.update();
+                      isResettingRef.current = false;
+                    }, 20);
                   }
                 }
               },
               pan: {
                 ...options?.plugins?.zoom?.pan,
                 onPanComplete: ({ chart }) => {
-                  if (!chart.isZoomedOrPanned()) {
-                    chart.resetZoom('none');
-                    chart.update();
+                  if (!chart.isZoomedOrPanned() && !isResettingRef.current) {
+                    isResettingRef.current = true;
+                    setTimeout(() => {
+                      chart.resetZoom('none');
+                      chart.update();
+                      isResettingRef.current = false;
+                    }, 20);
                   }
                 }
               }
