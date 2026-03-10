@@ -102,7 +102,7 @@ def start_collector():
                                 else:
                                     sys.stderr.write(
                                         f"DEBUG: Duplicate packet detected. Timing ({total_sensor_time}s) is OUTSIDE 10% tolerance of run diff ({run_time_diff}s).\n")
-
+                                    continue
                         # Update tracking variables for next iteration
                         last_payload_data = payload_dict.copy()
                         last_packet_timestamp = current_time

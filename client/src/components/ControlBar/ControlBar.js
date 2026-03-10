@@ -8,7 +8,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
     plugins: {
       legend: {
         display: false
-      }
+      },
     },
     layout: {
       padding: 0
