@@ -57,14 +57,21 @@ const SumpChart = ({ datasets, labels, options }) => {
             backgroundColor: "black",
             borderWidth: 2,
             // pointRadius: 1,
-            pointRadius: 0, // Points hidden by default
-            pointHoverRadius: 5, // Points appear on hover
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHitRadius: 10, // Added: Defines the invisible area around a point that triggers hover
             fill: false,
             tension: 0.4
           }))
         },
         options: {
           ...options,
+          // Added interaction mode to make hovering easier
+          interaction: {
+            mode: 'nearest',
+            intersect: false,
+            axis: 'x'
+          },
           plugins: {
             ...options.plugins,
             zoom: {
