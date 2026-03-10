@@ -7,39 +7,40 @@ Chart.register(zoomPlugin);
 const SumpChart = ({ datasets, labels, options }) => {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
-  // We use this to "freeze" the data the chart is looking at while zoomed
-  const frozenDataRef = useRef({ labels, datasets });
+  // Track if we are in the middle of a zoom-locked state
+  const isLockedRef = useRef(false);
 
   useEffect(() => {
     const ctx = chartRef.current.getContext('2d');
 
     if (chartInstance.current) {
+      // Check if this SPECIFIC chart instance is currently zoomed/panned
       const isZoomed = chartInstance.current.isZoomedOrPanned?.();
 
-      // THE LOGIC:
-      // If NOT zoomed, we accept the new data (8h, 24h, etc.) and update the chart.
       if (!isZoomed) {
+        // FULL UPDATE: Only when NOT zoomed.
+        // This syncs the 8h/24h/168h selection to the chart.
         chartInstance.current.data.labels = labels;
         datasets.forEach((ds, index) => {
           if (chartInstance.current.data.datasets[index]) {
             chartInstance.current.data.datasets[index].data = ds.data;
+            chartInstance.current.data.datasets[index].label = ds.label;
+            chartInstance.current.data.datasets[index].borderColor = ds.color;
           }
         });
+
+        // Sync the options (time scales)
         chartInstance.current.options = options;
         chartInstance.current.update();
-
-        // Update our "frozen" reference to match the current state
-        frozenDataRef.current = { labels, datasets };
+        isLockedRef.current = false;
+      } else {
+        // LOCK STATE: User is zoomed in.
+        // We do absolutely nothing to the chart instance here.
+        // This prevents the "missing data" or "resetting" behavior.
+        isLockedRef.current = true;
       }
-      // If currently ZOOMED, we do NOT update the chart's data.
-      // We keep the old data visible so the user doesn't see "missing data"
-      // just because they changed a background setting.
-      else {
-         // We do nothing here. The chart continues to display the data
-         // it had when it was last at 1x zoom.
-      }
-
     } else {
+      // Initial Mount
       chartInstance.current = new Chart(ctx, {
         type: 'line',
         data: {
@@ -58,7 +59,6 @@ const SumpChart = ({ datasets, labels, options }) => {
         },
         options: options
       });
-      frozenDataRef.current = { labels, datasets };
     }
   }, [datasets, labels, options]);
 
