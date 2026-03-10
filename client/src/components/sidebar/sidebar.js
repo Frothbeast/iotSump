@@ -39,11 +39,10 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           wheel: { enabled: true },
           pinch: { enabled: true },
           mode: 'xy',
-          // Ensure that when a user finishes zooming out manually,
-          // we tell the chart to update its data bounds.
           onZoomComplete: ({ chart }) => {
-            const isZoomed = chart.isZoomedOrPanned();
-            if (!isZoomed) {
+            // If the user zooms all the way out, trigger a full update
+            // to catch up with any background data changes (like selectedHours)
+            if (!chart.isZoomedOrPanned()) {
               chart.update();
             } else {
               chart.update('none');
