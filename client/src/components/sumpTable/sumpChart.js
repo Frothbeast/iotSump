@@ -13,10 +13,11 @@ const SumpChart = ({ datasets, labels, options }) => {
     const ctx = chartRef.current.getContext('2d');
 
     if (chartInstance.current) {
+      // 1. Detect if the hour selection/options changed
       const optionsChanged = prevOptionsRef.current !== options;
       prevOptionsRef.current = options;
 
-      // 1. Update data references
+      // 2. Update the raw data and labels
       chartInstance.current.data.labels = labels;
       datasets.forEach((ds, index) => {
         if (chartInstance.current.data.datasets[index]) {
@@ -26,33 +27,28 @@ const SumpChart = ({ datasets, labels, options }) => {
         }
       });
 
+      // 3. Update internal options (like timeUnit) but don't trigger a draw yet
       if (optionsChanged) {
         chartInstance.current.options = options;
       }
 
-      // 2. Determine Zoom State
+      // 4. Determine if we are currently zoomed in
       const isZoomed = chartInstance.current.isZoomedOrPanned?.();
 
-      // Get the current scale limits to see if we are "at the edges"
-      const xAxis = chartInstance.current.scales.x;
-      const isAtMaxZoomOut = xAxis && xAxis.min <= xAxis.chart.data.labels[0] &&
-                             xAxis.max >= xAxis.chart.data.labels[xAxis.chart.data.labels.length - 1];
-
-      // 3. The Logic:
-      // If the hours changed OR the user has manually zoomed all the way out:
-      // Trigger a full reset to show all data for the currently selected hours.
-      if (optionsChanged || !isZoomed || isAtMaxZoomOut) {
-        if (chartInstance.current.resetZoom) {
-          chartInstance.current.resetZoom('none');
-        }
-        chartInstance.current.update();
-      } else {
-        // If we are still actively zoomed into a specific window:
-        // Update data points but do NOT change the axis range.
+      // THE LOGIC:
+      // If the user is ZOOMED IN, we use 'none'.
+      // This allows the underlying data to change (24h worth of points exist now)
+      // but the "window" (the X-axis min/max) stays exactly where it was.
+      if (isZoomed) {
         chartInstance.current.update('none');
+      } else {
+        // If NOT zoomed, we allow a full update so the chart
+        // expands/contracts to the new hour selection.
+        chartInstance.current.update();
       }
 
     } else {
+      // Initial creation
       chartInstance.current = new Chart(ctx, {
         type: 'line',
         data: {
