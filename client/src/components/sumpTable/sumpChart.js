@@ -18,11 +18,14 @@ const SumpChart = ({ datasets, labels, options }) => {
       if (optionsChanged) {
         prevOptionsRef.current = options;
         isDirtyRef.current = true;
+        // Apply options to the instance immediately so it's ready for the next update
         chartInstance.current.options = options;
       }
 
+      // STRICT LOCK: If zoomed, do not touch the data or scales
       if (isZoomed) return;
 
+      // UPDATE DATA: Only if not zoomed
       chartInstance.current.data.labels = labels;
       datasets.forEach((ds, index) => {
         if (chartInstance.current.data.datasets[index]) {
@@ -32,6 +35,7 @@ const SumpChart = ({ datasets, labels, options }) => {
         }
       });
 
+      // Handle the "snap back" to the current scale
       if (isDirtyRef.current) {
         if (chartInstance.current.resetZoom) {
           chartInstance.current.resetZoom('none');
@@ -67,6 +71,7 @@ const SumpChart = ({ datasets, labels, options }) => {
               zoom: {
                 ...options.plugins.zoom.zoom,
                 onZoomComplete: ({ chart }) => {
+                  // Only reset the 'original' scale limit cache if we are at 1x
                   if (!chart.isZoomedOrPanned()) {
                     chart.resetZoom('none');
                     chart.update();
