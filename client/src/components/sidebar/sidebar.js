@@ -10,7 +10,6 @@ ChartJS.register(...registerables, zoomPlugin);
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
 
-  // Logic to create a clean config object
   const createConfig = (unit) => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -29,9 +28,15 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           pinch: { enabled: true },
           mode: 'xy',
           onZoomComplete: ({ chart }) => {
-            // Force this specific chart to look at the 'current' props
-            // if it just returned to 1x zoom.
-            if (!chart.isZoomedOrPanned()) {
+            // Check if we are back at 1x zoom
+            const isZoomed = chart.isZoomedOrPanned();
+
+            // If we are unzoomed AND there was a pending scale change (from changing hours),
+            // trigger the full update now.
+            if (!isZoomed && chart.needsScaleUpdate?.current) {
+              chart.update();
+              chart.needsScaleUpdate.current = false;
+            } else if (!isZoomed) {
               chart.update();
             } else {
               chart.update('none');
@@ -52,23 +57,17 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
     }
   });
 
-  // Unique memoized options for every single chart instance
   const opt1 = useMemo(() => createConfig(timeUnit), [timeUnit]);
   const opt2 = useMemo(() => createConfig(timeUnit), [timeUnit]);
   const opt3 = useMemo(() => createConfig(timeUnit), [timeUnit]);
   const opt4 = useMemo(() => createConfig(timeUnit), [timeUnit]);
-
-  const transitionStyle = {
-    transition: 'width 2s cubic-bezier(0.4, 0, 0.2, 1)',
-    willChange: 'width'
-  };
 
   const labels = sumpRecords.map(r => r.payload?.datetime);
 
   return (
     <div className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-content">
-        <div className="chartContainer" style={transitionStyle}>
+        <div className="chartContainer">
           <SumpChart
             labels={labels}
             datasets={[
@@ -78,7 +77,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             options={opt1}
           />
         </div>
-        <div className="chartContainer" style={transitionStyle}>
+        <div className="chartContainer">
           <SumpChart
             labels={labels}
             datasets={[
@@ -88,14 +87,14 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             options={opt2}
           />
         </div>
-        <div className="chartContainer" style={transitionStyle}>
+        <div className="chartContainer">
           <SumpChart
             labels={labels}
             datasets={[{ label: "Duty Cycle", color: "lavender", data: sumpRecords.map(r => r.payload?.duty) }]}
             options={opt3}
           />
         </div>
-        <div className="chartContainer" style={transitionStyle}>
+        <div className="chartContainer">
           <SumpChart
             labels={labels}
             datasets={[{

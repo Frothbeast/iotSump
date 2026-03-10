@@ -7,40 +7,46 @@ Chart.register(zoomPlugin);
 const SumpChart = ({ datasets, labels, options }) => {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
-  // Track if we are in the middle of a zoom-locked state
-  const isLockedRef = useRef(false);
+  const prevOptionsRef = useRef(options);
+  const needsScaleUpdateRef = useRef(false);
 
   useEffect(() => {
     const ctx = chartRef.current.getContext('2d');
 
     if (chartInstance.current) {
-      // Check if this SPECIFIC chart instance is currently zoomed/panned
+      const optionsChanged = prevOptionsRef.current !== options;
+      prevOptionsRef.current = options;
+
+      // 1. Always update data points in the background
+      chartInstance.current.data.labels = labels;
+      datasets.forEach((ds, index) => {
+        if (chartInstance.current.data.datasets[index]) {
+          chartInstance.current.data.datasets[index].data = ds.data;
+        }
+      });
+
       const isZoomed = chartInstance.current.isZoomedOrPanned?.();
 
-      if (!isZoomed) {
-        // FULL UPDATE: Only when NOT zoomed.
-        // This syncs the 8h/24h/168h selection to the chart.
-        chartInstance.current.data.labels = labels;
-        datasets.forEach((ds, index) => {
-          if (chartInstance.current.data.datasets[index]) {
-            chartInstance.current.data.datasets[index].data = ds.data;
-            chartInstance.current.data.datasets[index].label = ds.label;
-            chartInstance.current.data.datasets[index].borderColor = ds.color;
-          }
-        });
-
-        // Sync the options (time scales)
+      if (optionsChanged) {
         chartInstance.current.options = options;
-        chartInstance.current.update();
-        isLockedRef.current = false;
+        if (isZoomed) {
+          // 2. Mark that we need a full refresh once the user zooms out
+          needsScaleUpdateRef.current = true;
+          chartInstance.current.update('none');
+        } else {
+          // 3. Not zoomed? Update immediately
+          chartInstance.current.update();
+          needsScaleUpdateRef.current = false;
+        }
       } else {
-        // LOCK STATE: User is zoomed in.
-        // We do absolutely nothing to the chart instance here.
-        // This prevents the "missing data" or "resetting" behavior.
-        isLockedRef.current = true;
+        // Regular data stream update
+        if (isZoomed) {
+          chartInstance.current.update('none');
+        } else {
+          chartInstance.current.update();
+        }
       }
     } else {
-      // Initial Mount
       chartInstance.current = new Chart(ctx, {
         type: 'line',
         data: {
@@ -59,6 +65,8 @@ const SumpChart = ({ datasets, labels, options }) => {
         },
         options: options
       });
+      // Attach the reference to the instance so the plugin hook can see it
+      chartInstance.current.needsScaleUpdate = needsScaleUpdateRef;
     }
   }, [datasets, labels, options]);
 
