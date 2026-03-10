@@ -13,52 +13,45 @@ const SumpChart = ({ datasets, labels, options }) => {
     const ctx = chartRef.current.getContext('2d');
 
     if (chartInstance.current) {
-      // 1. Detect if the hour selection changed
       const optionsChanged = prevOptionsRef.current !== options;
       prevOptionsRef.current = options;
 
-      // 2. Update data and labels
+      // 1. Update data references
       chartInstance.current.data.labels = labels;
+      datasets.forEach((ds, index) => {
+        if (chartInstance.current.data.datasets[index]) {
+          chartInstance.current.data.datasets[index].data = ds.data;
+          chartInstance.current.data.datasets[index].label = ds.label;
+          chartInstance.current.data.datasets[index].borderColor = ds.color;
+        }
+      });
 
-      // If the hours changed, we re-map the datasets entirely
-      // to ensure Chart.js recognizes the new array lengths
       if (optionsChanged) {
-        chartInstance.current.data.datasets = datasets.map(ds => ({
-          label: ds.label,
-          data: ds.data,
-          borderColor: ds.color,
-          backgroundColor: ds.backgroundColor,
-          borderWidth: 2,
-          pointRadius: 1,
-          pointStyle: 'circle',
-          fill: false,
-          tension: 0.4
-        }));
-
         chartInstance.current.options = options;
+      }
 
-        // Reset zoom so the new data fills the screen
+      // 2. Determine Zoom State
+      const isZoomed = chartInstance.current.isZoomedOrPanned?.();
+
+      // Get the current scale limits to see if we are "at the edges"
+      const xAxis = chartInstance.current.scales.x;
+      const isAtMaxZoomOut = xAxis && xAxis.min <= xAxis.chart.data.labels[0] &&
+                             xAxis.max >= xAxis.chart.data.labels[xAxis.chart.data.labels.length - 1];
+
+      // 3. The Logic:
+      // If the hours changed OR the user has manually zoomed all the way out:
+      // Trigger a full reset to show all data for the currently selected hours.
+      if (optionsChanged || !isZoomed || isAtMaxZoomOut) {
         if (chartInstance.current.resetZoom) {
           chartInstance.current.resetZoom('none');
         }
-
-        // Force full update to parse the new data
         chartInstance.current.update();
       } else {
-        // Standard data update (new records arriving)
-        datasets.forEach((ds, index) => {
-          if (chartInstance.current.data.datasets[index]) {
-            chartInstance.current.data.datasets[index].data = ds.data;
-          }
-        });
-
-        const isZoomed = chartInstance.current.isZoomedOrPanned?.();
-        if (!isZoomed) {
-          chartInstance.current.update();
-        } else {
-          chartInstance.current.update('none');
-        }
+        // If we are still actively zoomed into a specific window:
+        // Update data points but do NOT change the axis range.
+        chartInstance.current.update('none');
       }
+
     } else {
       chartInstance.current = new Chart(ctx, {
         type: 'line',
@@ -68,7 +61,7 @@ const SumpChart = ({ datasets, labels, options }) => {
             label: ds.label,
             data: ds.data,
             borderColor: ds.color,
-            backgroundColor: ds.backgroundColor,
+            backgroundColor: "black",
             borderWidth: 2,
             pointRadius: 1,
             pointStyle: 'circle',
