@@ -8,43 +8,36 @@ const SumpChart = ({ datasets, labels, options }) => {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
   const prevOptionsRef = useRef(options);
-  // This ref tracks if a change in hours occurred while the user was zoomed in
-  const pendingUpdateRef = useRef(false);
+  // Track if data/hours changed while we were "frozen" in zoom
+  const isDirtyRef = useRef(false);
 
   useEffect(() => {
-    const ctx = chartRef.current.getContext('2d');
-
     if (chartInstance.current) {
       const optionsChanged = prevOptionsRef.current !== options;
-      prevOptionsRef.current = options;
-
       const isZoomed = chartInstance.current.isZoomedOrPanned?.();
 
-      // IF ZOOMED: Do absolutely nothing.
-      // Do not update data, do not update labels, do not update options.
-      // This prevents the data from being "cut off" when hours are reduced background.
-      if (isZoomed) {
-        if (optionsChanged) {
-          pendingUpdateRef.current = true;
-        }
-        return;
+      if (optionsChanged) {
+        prevOptionsRef.current = options;
+        isDirtyRef.current = true;
       }
 
-      // IF NOT ZOOMED: Update everything to match current settings.
+      // If we are zoomed, STOP. Do not update anything.
+      if (isZoomed) return;
+
+      // If NOT zoomed, check if we need to update (either new data or a pending change)
+      // Only run the heavy update if data is "dirty" or it's a standard flow
       chartInstance.current.data.labels = labels;
       datasets.forEach((ds, index) => {
         if (chartInstance.current.data.datasets[index]) {
           chartInstance.current.data.datasets[index].data = ds.data;
-          chartInstance.current.data.datasets[index].label = ds.label;
-          chartInstance.current.data.datasets[index].borderColor = ds.color;
         }
       });
 
       chartInstance.current.options = options;
-      chartInstance.current.update();
-      pendingUpdateRef.current = false;
-
+      chartInstance.current.update('none'); // Use 'none' to prevent animation lag
+      isDirtyRef.current = false;
     } else {
+      const ctx = chartRef.current.getContext('2d');
       chartInstance.current = new Chart(ctx, {
         type: 'line',
         data: {
@@ -56,17 +49,29 @@ const SumpChart = ({ datasets, labels, options }) => {
             backgroundColor: "black",
             borderWidth: 2,
             pointRadius: 1,
-            pointStyle: 'circle',
             fill: false,
             tension: 0.4
           }))
         },
         options: options
       });
-      // Attach the flag to the instance so the zoom plugin hook can see it
-      chartInstance.current.pendingUpdate = pendingUpdateRef;
     }
   }, [datasets, labels, options]);
+
+  // Separate effect to watch for zoom-out events specifically
+  useEffect(() => {
+    const checkZoom = setInterval(() => {
+      if (chartInstance.current && !chartInstance.current.isZoomedOrPanned?.()) {
+        if (isDirtyRef.current) {
+          // Sync the chart once when it returns to 1x
+          chartInstance.current.update();
+          isDirtyRef.current = false;
+        }
+      }
+    }, 500); // Check every half second instead of every frame
+
+    return () => clearInterval(checkZoom);
+  }, []);
 
   useEffect(() => {
     return () => {

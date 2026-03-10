@@ -26,17 +26,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         zoom: {
           wheel: { enabled: true },
           pinch: { enabled: true },
-          mode: 'xy',
-          onZoomComplete: ({ chart }) => {
-            // Only when the user is completely unzoomed (1x)
-            if (!chart.isZoomedOrPanned()) {
-              // We force a resetZoom to clear any cached "original" scale limits
-              chart.resetZoom('none');
-              // We trigger the update to catch up with the background data
-              chart.update();
-              if (chart.pendingUpdate) chart.pendingUpdate.current = false;
-            }
-          }
+          mode: 'xy'
         }
       }
     },
