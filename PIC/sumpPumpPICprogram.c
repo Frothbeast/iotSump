@@ -50,7 +50,7 @@ uint16_t lowSampleCount = 0, highSampleCount = 0;
 uint16_t tenMinuteCounter = 0;
 uint8_t tenMinuteFlag = 0;
 uint16_t backlightTime = 0;
-uint8_t backlightState = 1; 
+uint8_t backlightState = 1;
 
 // Raw and Filtered ADC values
 uint16_t low_val = 0, high_val = 0;
@@ -375,7 +375,11 @@ void main(void) {
                 espFails=0;
             }
             if (pumpState == 1) {
-                if (backlightState == 0) { software_putch(14); backlightState = 1; }
+                if (backlightState == 0) { 
+                    char cmd[2] = {14, '\0'};
+                    put_to_disp_buf(cmd); 
+                    backlightState = 1; 
+                }
                 backlightTime = 0;
                 highSum += high_val; highSampleCount++;
                 currentOnTime++; wasOn = 1;
@@ -391,7 +395,8 @@ void main(void) {
                 if (backlightTime < 31) {
                     backlightTime++;
                     if (backlightTime > 30 && backlightState == 1) {
-                        software_putch(15);
+                        char cmd[2] = {15, '\0'};
+                        put_to_disp_buf(cmd);
                         backlightState = 0;
                     }
                 }
