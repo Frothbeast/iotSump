@@ -96,7 +96,7 @@ def start_collector():
                                 total_sensor_time = t_on + t_off
 
                                 # Logic: 0.9 * diff <= sensor_time <= 1.1 * diff
-                                if 0.9 * run_time_diff <= total_sensor_time:
+                                if run_time_diff >= 0.9 * total_sensor_time:
                                     sys.stderr.write(
                                         "DEBUG: Duplicate packet detected. Timing is within 10% tolerance.\n")
                                 else:
