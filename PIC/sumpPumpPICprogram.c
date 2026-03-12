@@ -14,11 +14,11 @@
 #define PIR2_REG (*(volatile __near unsigned char*)0xFA1)
 
 // Configuration for 18LF2580
-#pragma config OSC = HS         
-#pragma config WDT = OFF        
-#pragma config WDTPS = 4096     
-#pragma config BOREN = OFF      
-#pragma config LVP = OFF       
+#pragma config OSC = HS          
+#pragma config WDT = OFF         
+#pragma config WDTPS = 4096      
+#pragma config BOREN = OFF       
+#pragma config LVP = OFF        
 #define _XTAL_FREQ 20000000
 
 // Hardware Mapping
@@ -47,6 +47,10 @@ uint16_t lastOnTime = 0, lastOffTime = 0, espFails;
 uint8_t pumpState = 0; 
 uint8_t initialSendDone = 0;
 uint16_t lowSampleCount = 0, highSampleCount = 0;
+uint16_t tenMinuteCounter = 0;
+uint8_t tenMinuteFlag = 0;
+uint16_t backlightTime = 0;
+uint8_t backlightState = 1;
 
 // Raw and Filtered ADC values
 uint16_t low_val = 0, high_val = 0;
@@ -196,9 +200,7 @@ void uart_send_string(const char* s) {
 
 void process_esp_state_machine(void) {
     char data_str[24], cmd_str[64];
-    char error_display[21];
-    
-    if (pumpState == 1) { currentEspState = ESP_IDLE; return; }
+    if (pumpState == 1 && tenMinuteFlag == 0) { currentEspState = ESP_IDLE; return; }
 
     // Kick off connection if records are waiting
     if (currentEspState == ESP_IDLE && records_pending > 0) {
@@ -373,12 +375,34 @@ void main(void) {
                 espFails=0;
             }
             if (pumpState == 1) {
+                if (backlightState == 0) { 
+                    char cmd[2] = {14, '\0'};
+                    put_to_disp_buf(cmd); 
+                    backlightState = 1; 
+                }
+                backlightTime = 0;
                 highSum += high_val; highSampleCount++;
                 currentOnTime++; wasOn = 1;
-                if (wasOff) { lastOffTime = currentOffTime; currentOffTime = 0; wasOff = 0; }
+                tenMinuteCounter++;
+                if (wasOff) { lastOffTime = (currentOffTime == 0) ? 1 : currentOffTime; currentOffTime = 0; wasOff = 0; }
+                if (tenMinuteCounter >= 600) {
+                    tenMinuteFlag = 1;
+                    if (highSampleCount > 0) lastHatod = (uint16_t)(highSum / highSampleCount);
+                    save_to_buffer(lastHatod, 0, hoursSincePowerup, tenMinuteCounter, lastOffTime);
+                    tenMinuteCounter = 0;
+                }
             } else {
+                if (backlightTime < 31) {
+                    backlightTime++;
+                    if (backlightTime > 30 && backlightState == 1) {
+                        char cmd[2] = {15, '\0'};
+                        put_to_disp_buf(cmd);
+                        backlightState = 0;
+                    }
+                }
                 lowSum += low_val; lowSampleCount++;
                 currentOffTime++; wasOff = 1;
+                tenMinuteCounter = 0; tenMinuteFlag = 0;
             }
             if (secondsSincePowerup % 3600 == 0) hoursSincePowerup++;
         }
