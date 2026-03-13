@@ -14,12 +14,14 @@ load_dotenv()
 BIND_HOST = os.getenv('BIND_HOST', '0.0.0.0')
 PORT = 1884
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASS'),
-    'database': os.getenv('DB_NAME'),
+    host
+': os.getenv('
+DB_HOST
+'),
+'user': os.getenv('DB_USER'),
+'password': os.getenv('DB_PASS'),
+'database': os.getenv('DB_NAME'),
 }
-
 
 def start_greenhouse_collector():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -35,36 +37,43 @@ def start_greenhouse_collector():
                 with conn:
                     data = conn.recv(1024)
                     if data:
-                        # 1. Receive the raw hex string (e.g., "69643d...")
+                        # 1. Receive the raw hex string
                         hex_str = data.decode('ascii').strip()
 
+                        # Remove "payload=" if it accidentally still exists in the string
+                        if hex_str.startswith("payload="):
+                            hex_str = hex_str.replace("payload=", "")
+
                         if hex_str:
-                            # 2. Decode hex back to plain text (e.g., "id=DISH&temp=22.5...")
-                            plain_text = binascii.unhexlify(hex_str).decode('utf-8')
+                            try:
+                                # 2. Decode hex back to plain text
+                                plain_text = binascii.unhexlify(hex_str).decode('utf-8')
 
-                            # 3. Create the JSON payload for the database
-                            payload_data = {
-                                "raw": plain_text,
-                                "src_ip": addr[0],
-                                "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            }
+                                # 3. Create the JSON payload for the database
+                                payload_data = {
+                                    "raw": plain_text,
+                                    "src_ip": addr[0],
+                                    "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                }
 
-                            # 4. Inject into Database
-                            conn_db = mysql.connector.connect(**DB_CONFIG)
-                            cursor = conn_db.cursor()
-                            query = f"INSERT INTO {DB_CONFIG['database']}.greenhouse_log (payload) VALUES (%s)"
-                            cursor.execute(query, (json.dumps(payload_data),))
-                            conn_db.commit()
+                                # 4. Inject into Database
+                                conn_db = mysql.connector.connect(**DB_CONFIG)
+                                cursor = conn_db.cursor()
+                                query = f"INSERT INTO {DB_CONFIG['database']}.greenhouse_log (payload) VALUES (%s)"
+                                cursor.execute(query, (json.dumps(payload_data),))
+                                conn_db.commit()
 
-                            cursor.close()
-                            conn_db.close()
+                                cursor.close()
+                                conn_db.close()
 
-                            conn.sendall(b"ACK\n")
-                            print(f"Logged from {addr[0]}: {plain_text}")
+                                conn.sendall(b"ACK\n")
+                                print(f"Logged from {addr[0]}: {plain_text}")
+                            except Exception as decode_err:
+                                print(f"Hex Error: {decode_err} | Received: {hex_str[:20]}...")
                         else:
                             print(f"Received empty string from {addr[0]}")
             except Exception as e:
-                print(f"Error: {e}")
+                print(f"Global Error: {e}")
 
 
 if __name__ == "__main__":
