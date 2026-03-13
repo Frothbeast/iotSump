@@ -130,7 +130,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
               data: sumpRecords.slice(1).map((r, i) => {
                 const current = new Date(r.payload?.datetime).getTime();
                 const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
-                return ( previous -current) / 60000;
+                return ( previous - current) / 60000;
               })}
             ]}
             options={getOptions(0, 100)}
