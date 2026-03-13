@@ -48,20 +48,20 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
         <div className="chartContainer">
           <h3>Signal Strength (RSSI)</h3>
           <SumpChart
-            labels={labels}
-            datasets={[
-              { 
-                label: "Signal", 
-                color: "#4d94ff", 
-                data: data.map(d => parseInt(d.rssi_best)) 
-              }
-            ]}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { x: { type: 'time', time: { unit: 'minute' } } }
-            }}
-          />
+              labels={labels}
+              datasets={[
+                { 
+                  label: "Avg Temp", 
+                  color: "#ff4d4d", 
+                  data: data.map(d => parseFloat(d.temp_avg)) 
+                }
+              ]}
+              options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: { x: { type: 'time', time: { unit: 'minute' } } }
+              }}
+            />
         </div>
       </div>
     </div>
