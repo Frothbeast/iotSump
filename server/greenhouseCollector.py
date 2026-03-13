@@ -47,7 +47,8 @@ def flush_device(device_id):
             "ts_flushed": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        conn_db = mysql.connector.connect(**db_config)
+        # conn_db = mysql.connector.connect(**db_config)
+        conn_db = mysql.connector.connect(**DB_CONFIG)
         cursor = conn_db.cursor()
         query = f"INSERT INTO {DB_CONFIG['database']}.greenhouse_log (payload) VALUES (%s)"
         cursor.execute(query, (json.dumps(summary_payload),))
