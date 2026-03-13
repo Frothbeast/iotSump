@@ -7,14 +7,18 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
 
   useEffect(() => {
     if (isOpen) {
-      // Fetch specifically for the DISH_UNIT
+      // Using the exact identity from your earlier data packet
       fetch('/api/greenhouse/stats?esp=DISH_UNIT')
         .then(res => res.json())
-        .then(json => setData(json))
+        .then(json => {
+          console.log("Greenhouse Raw Data:", json);
+          setData(json);
+        })
         .catch(err => console.error("Greenhouse fetch error:", err));
     }
   }, [isOpen]);
 
+  // Labels must be valid date strings for the 'time' scale in SumpChart
   const labels = data.map(item => item.time_mark);
 
   return (
@@ -24,28 +28,62 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
         <button className="close-btn" onClick={closeSidebar}>&times;</button>
       </div>
       <div className="sidebar-content">
-        <div className="chartContainer">
-          <h3>Temperature (°C)</h3>
-          <SumpChart
-            labels={labels}
-            datasets={[
-              { label: "Avg", color: "#ff4d4d", data: data.map(d => d.temp_avg) },
-              { label: "High", color: "#ff9999", data: data.map(d => d.temp_high) }
-            ]}
-            options={{ responsive: true, maintainAspectRatio: false }}
-          />
-        </div>
-        <div className="chartContainer">
-          <h3>Signal Strength (RSSI)</h3>
-          <SumpChart
-            labels={labels}
-            datasets={[
-              { label: "Best", color: "#4d94ff", data: data.map(d => d.rssi_best) },
-              { label: "Worst", color: "#003d99", data: data.map(d => d.rssi_worst) }
-            ]}
-            options={{ responsive: true, maintainAspectRatio: false }}
-          />
-        </div>
+        {data.length > 0 ? (
+          <>
+            <div className="chartContainer">
+              <h3>Temperature (°C)</h3>
+              <SumpChart
+                labels={labels}
+                datasets={[
+                  { 
+                    label: "Avg Temp", 
+                    color: "#ff4d4d", 
+                    // Use d.temp_avg directly because the VIEW flattens the JSON
+                    data: data.map(d => parseFloat(d.temp_avg)) 
+                  },
+                  { 
+                    label: "High", 
+                    color: "#ff9999", 
+                    data: data.map(d => parseFloat(d.temp_high)) 
+                  }
+                ]}
+                // Options to match your Sidebar.js time configuration
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: {
+                      type: 'time',
+                      time: { unit: 'minute' }
+                    }
+                  }
+                }}
+              />
+            </div>
+            <div className="chartContainer">
+              <h3>Signal Strength (RSSI)</h3>
+              <SumpChart
+                labels={labels}
+                datasets={[
+                  { 
+                    label: "RSSI", 
+                    color: "#4d94ff", 
+                    data: data.map(d => parseInt(d.rssi_best)) 
+                  }
+                ]}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: { type: 'time', time: { unit: 'minute' } }
+                  }
+                }}
+              />
+            </div>
+          </>
+        ) : (
+          <div style={{padding: '20px'}}>Waiting for data or DISH_UNIT not found...</div>
+        )}
       </div>
     </div>
   );
