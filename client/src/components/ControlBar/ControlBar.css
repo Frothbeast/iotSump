@@ -94,18 +94,16 @@
   flex-wrap: wrap;
   flex-basis: 30%;
   align-items: stretch;
-  /* height: 100%; */
-  height: var(--controlBar-height); /* Ensure it matches the header height exactly */
+  height: 100%;
+  height: var(--controlBar-height); 
   border: 1px solid black;
 }
 
 .chartContainer {
-  /* flex-basis: 50%; */
-  flex: 0 0 50%; /* Strictly force 50% width */
+  flex-basis: 50%;
   position: relative;
   box-sizing: border-box;
-  /* height: 50%; */
-  height: calc(var(--controlBar-height) / 2); /* Strictly force 50% height */
+  height: 50%;
   border: 1px solid black;
 }
 .chartContainer canvas {
