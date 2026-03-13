@@ -42,24 +42,21 @@ from flask import request, jsonify
 
 @app.route('/api/greenhouse/stats')
 def get_greenhouse_stats():
-    # Capture the ESP identity from the URL: ?esp=DISH_UNIT
     esp_identity = request.args.get('esp')
 
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
     if esp_identity:
-        # We query the view, filtering by the 'id' column
-        # (which in the VIEW we created earlier, is the ESP name string)
+        # Changed 'id' to 'esp_name' to match the View definition
         query = """
             SELECT * FROM v_greenhouse_summary 
-            WHERE id = %s 
+            WHERE esp_name = %s 
             ORDER BY time_mark ASC 
             LIMIT 1440
         """
         cursor.execute(query, (esp_identity,))
     else:
-        # Return all if no specific ESP is requested
         query = "SELECT * FROM v_greenhouse_summary ORDER BY time_mark ASC LIMIT 1440"
         cursor.execute(query)
 
