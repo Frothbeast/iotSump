@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import SumpChart from '../sumpTable/sumpChart'; // Reusing the generic engine
+import SumpChart from '../sumpTable/sumpChart';
 import './greenhouseSidebar.css';
 
 const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
@@ -16,7 +16,6 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
 
   const labels = data.map(item => item.time_mark);
 
-  // Time-scale options are required for the data to render against time_mark strings
   const greenhouseOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -64,7 +63,6 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
               labels={labels}
               datasets={[
                 { 
-                  // CORRECTION: Map to rssi_best, not temp_avg
                   label: "RSSI (dBm)", 
                   color: "#4d94ff", 
                   data: data.map(d => parseInt(d.rssi_best)) 

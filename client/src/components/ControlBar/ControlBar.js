@@ -38,6 +38,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
         <div className="brand">Sump</div>
         <div className="serverTime"><span className="stLabel">Server Time:</span><span>{serverTime ?? "00:00:00"}</span></div>
       </div>
+
       <div className="centerSection">
         <div className="lastRun">
           <span className="label">Last Run</span>
@@ -79,6 +80,25 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
           />
         </div>
         <div className="chartContainer">
+          <div className="chartWatermark">STATS</div>
+          <SumpChart
+            labels={sumpRecords.map((_, i) => i)}
+            datasets={[
+              {
+                label: "timeOn",
+                color: "pink",
+                data: sumpRecords.map(r => r.payload?.timeOn),
+              },
+              {
+                label: "timeOff",
+                color: "yellow",
+                data: sumpRecords.map(r => r.payload?.timeOff),
+              }
+            ]}
+            options={getOptions(0, 3500)}
+          />
+        </div>
+        <div className="chartContainer">
           <div className="chartWatermark">DUTY</div>
           <SumpChart
             labels={sumpRecords.map((_, i) => i)}
@@ -90,6 +110,21 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
               }
             ]}
             options={getOptions(-1, 99)}
+          />
+        </div>
+        <div className="chartContainer">
+          <div className="chartWatermark">PERIOD</div>
+          <SumpChart
+            labels={sumpRecords.map((_, i) => i)}
+            datasets={[{
+              label: "period", color: "cyan",
+              data: sumpRecords.slice(1).map((r, i) => {
+                const current = new Date(r.payload?.datetime).getTime();
+                const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
+                return ( previous - current) / 60000;
+              })}
+            ]}
+            options={getOptions(0, 100)}
           />
         </div>
       </div>
