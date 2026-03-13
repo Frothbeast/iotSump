@@ -5,7 +5,7 @@ import ControlBar from './components/ControlBar/ControlBar';
 import Sidebar from './components/sidebar/sidebar';
 import { calculateColumnStats } from './utils/sumpStats'; // Import logic
 import './App.css';
-import GreenhouseSidebar from './components/greenhouseSidebar/GreenhouseSidebar';
+import GreenhouseSidebar from './components/greenhouseSidebar/greenhouseSidebar';
 
 function App() {
   const [selectedHours, setSelectedHours] = useState(24);
