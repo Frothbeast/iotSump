@@ -64,7 +64,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
             <option value={24}>24 Hour</option>
             <option value={168}>168 Hour</option>
           </select>
-          <button class="open-btn" onclick="openSidebar()">Greenhouse</button>
+          <button className="greenhouseButton" onClick={toggleGreenhouse}>{isGreenhouseOpen ? "Close Greenhouse" : "Greenhouse"}</button>
         </div>
       </div>
       <div className="chartSection">

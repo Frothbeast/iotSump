@@ -5,6 +5,7 @@ import ControlBar from './components/ControlBar/ControlBar';
 import Sidebar from './components/sidebar/sidebar';
 import { calculateColumnStats } from './utils/sumpStats'; // Import logic
 import './App.css';
+import GreenhouseSidebar from './components/greenhouseSidebar/GreenhouseSidebar';
 
 function App() {
   const [selectedHours, setSelectedHours] = useState(24);
@@ -15,6 +16,8 @@ function App() {
 
   const [serverTime, setServerTime] = useState("00:00 AM");
 
+  const [isGreenhouseOpen, setGreenhouseOpen] = useState(false); // New state
+  
   const cl1pClick = async () => {
     try{
       const response = await fetch('/api/cl1p', {method: 'POST',});
@@ -57,11 +60,13 @@ function App() {
         toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
         isSidebarOpen={isSidebarOpen}
         serverTime={serverTime}
+        toggleGreenhouse={() => setGreenhouseOpen(!isGreenhouseOpen)} // New prop
       />
       <main>
         <div className="tableWrapper">
           <SumpTable sumpRecords={sumpRecords} columnStats={columnStats} />
           <Sidebar isOpen={isSidebarOpen} sumpRecords={sumpRecords} selectedHours={selectedHours} />
+          <GreenhouseSidebar isOpen={isGreenhouseOpen}closeSidebar={() => setGreenhouseOpen(false)} />
         </div>
       </main>
     </div>
