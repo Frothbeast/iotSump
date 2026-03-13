@@ -9,6 +9,7 @@ import json
 import mysql.connector
 from dotenv import load_dotenv
 from datetime import datetime
+from urllib.parse import parse_qs  # Added for robust parsing
 
 load_dotenv()
 
@@ -24,48 +25,55 @@ DB_CONFIG = {
 
 
 def start_greenhouse_collector():
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind((BIND_HOST, PORT))
-    server_socket.listen(5)
+    # Use context manager for server socket to ensure it closes properly
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server_socket.bind((BIND_HOST, PORT))
+        server_socket.listen(5)
 
-    print(f"Greenhouse Collector monitoring port {PORT}...")
+        print(f"Greenhouse Collector monitoring port {PORT}...")
 
-    while True:
-        try:
-            conn, addr = server_socket.accept()
-            with conn:
-                data = conn.recv(1024)
-                if data:
-                    raw_str = data.decode('ascii').strip()
+        while True:
+            try:
+                conn, addr = server_socket.accept()
+                with conn:
+                    data = conn.recv(1024)
+                    if data:
+                        raw_str = data.decode('ascii').strip()
 
-                    if raw_str.startswith("payload="):
-                        hex_str = raw_str.split("payload=")[1]
-                        # Decode Hex ASCII
-                        plain_text = binascii.unhexlify(hex_str).decode('utf-8')
-                        # Parse: id=DISH_UNIT&temp=22.50&rssi=-60
-                        payload_dict = dict(item.split("=") for item in plain_text.split("&"))
+                        if raw_str.startswith("payload="):
+                            hex_str = raw_str.split("payload=")[1]
+                            # Decode Hex ASCII
+                            plain_text = binascii.unhexlify(hex_str).decode('utf-8')
 
-                        # Add timestamp
-                        payload_dict['datetime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            # Correction: Use parse_qs instead of manual split to avoid "length 1; 2 is required"
+                            # payload_dict = dict(item.split("=") for item in plain_text.split("&"))
+                            parsed_params = parse_qs(plain_text)
+                            payload_dict = {k: v[0] for k, v in parsed_params.items()}
 
-                        # Inject into Database
-                        conn_db = mysql.connector.connect(**DB_CONFIG)
-                        cursor = conn_db.cursor()
-                        # Assuming you want to store it in the greenhouse_log table
-                        query = f"INSERT INTO {DB_CONFIG['database']}.greenhouse_log (payload) VALUES (%s)"
-                        cursor.execute(query, (json.dumps(payload_dict),))
+                            # Add timestamp
+                            payload_dict['datetime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                        conn_db.commit()
-                        cursor.close()
-                        conn_db.close()
+                            # Inject into Database
+                            conn_db = mysql.connector.connect(**DB_CONFIG)
+                            cursor = conn_db.cursor()
+                            # Assuming you want to store it in the greenhouse_log table
+                            query = f"INSERT INTO {DB_CONFIG['database']}.greenhouse_log (payload) VALUES (%s)"
+                            cursor.execute(query, (json.dumps(payload_dict),))
 
-                        conn.sendall(b"ACK")
-                        print(f"Logged from {addr[0]}: {payload_dict['id']} | RSSI: {payload_dict['rssi']}")
-                    else:
-                        conn.sendall(b"ERR_INVALID_FORMAT")
-        except Exception as e:
-            print(f"Error: {e}")
+                            conn_db.commit()
+                            cursor.close()
+                            conn_db.close()
+
+                            conn.sendall(b"ACK\n")
+                            # Safely get ID and RSSI for console print
+                            device_id = payload_dict.get('id', 'Unknown')
+                            rssi = payload_dict.get('rssi', 'N/A')
+                            print(f"Logged from {addr[0]}: {device_id} | RSSI: {rssi}")
+                        else:
+                            conn.sendall(b"ERR_INVALID_FORMAT\n")
+            except Exception as e:
+                print(f"Error: {e}")
 
 
 if __name__ == "__main__":
