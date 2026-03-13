@@ -1,11 +1,10 @@
 #
-# Dedicated Greenhouse Collector - Simplified Mimic Version
+# Dedicated Greenhouse Collector - Exact Sump Mimic
 #
 import os
-import sys
 import socket
-import binascii
 import json
+import binascii
 import mysql.connector
 from dotenv import load_dotenv
 from datetime import datetime
@@ -28,7 +27,7 @@ def start_greenhouse_collector():
         server_socket.bind((BIND_HOST, PORT))
         server_socket.listen(5)
 
-        print(f"Greenhouse Collector (Mimic Mode) on port {PORT}...")
+        print(f"Greenhouse Collector (Sump Mimic) on port {PORT}...")
 
         while True:
             try:
@@ -36,22 +35,21 @@ def start_greenhouse_collector():
                 with conn:
                     data = conn.recv(1024)
                     if data:
-                        raw_str = data.decode('ascii').strip()
+                        # 1. Receive the raw hex string (e.g., "69643d...")
+                        hex_str = data.decode('ascii').strip()
 
-                        if raw_str.startswith("payload="):
-                            hex_str = raw_str.split("payload=")[1]
-                            # Decode Hex to the raw string sent by ESP (e.g., "id=DISH&temp=22.5...")
+                        if hex_str:
+                            # 2. Decode hex back to plain text (e.g., "id=DISH&temp=22.5...")
                             plain_text = binascii.unhexlify(hex_str).decode('utf-8')
 
-                            # Create a simple JSON object to keep the DB happy
-                            # This puts your entire string into one 'raw' field
+                            # 3. Create the JSON payload for the database
                             payload_data = {
                                 "raw": plain_text,
                                 "src_ip": addr[0],
-                                "datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             }
 
-                            # Inject into Database
+                            # 4. Inject into Database
                             conn_db = mysql.connector.connect(**DB_CONFIG)
                             cursor = conn_db.cursor()
                             query = f"INSERT INTO {DB_CONFIG['database']}.greenhouse_log (payload) VALUES (%s)"
@@ -62,9 +60,9 @@ def start_greenhouse_collector():
                             conn_db.close()
 
                             conn.sendall(b"ACK\n")
-                            print(f"Logged Raw Data: {plain_text}")
+                            print(f"Logged from {addr[0]}: {plain_text}")
                         else:
-                            conn.sendall(b"ERR_INVALID_FORMAT\n")
+                            print(f"Received empty string from {addr[0]}")
             except Exception as e:
                 print(f"Error: {e}")
 
