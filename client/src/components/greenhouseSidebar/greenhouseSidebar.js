@@ -14,11 +14,32 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
     }
   }, [isOpen]);
 
-  // Labels for the X-axis
   const labels = data.map(item => item.time_mark);
+
+  // Define shared options for a cleaner look and working time scale
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        type: 'time',
+        time: { unit: 'minute' },
+        ticks: { color: 'grey' }
+      },
+      y: {
+        ticks: { color: 'grey' }
+      }
+    },
+    plugins: {
+      legend: { display: true, labels: { color: 'lightgrey' } }
+    }
+  };
 
   return (
     <div className={`greenhouse-sidebar ${isOpen ? 'open' : ''}`}>
+      {/* CORRECTION: Removed backslashes (\) from className and tags. 
+          The previous version had escaped quotes like className=\"sidebar-header\" which is a syntax error in JS/JSX.
+      */}
       <div className="sidebar-header">
         <h2>Greenhouse Monitor</h2>
         <button className="close-btn" onClick={closeSidebar}>&times;</button>
@@ -33,15 +54,10 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
               { 
                 label: "Average", 
                 color: "#ff4d4d", 
-                // Directly mapping the flat key from your Greenhouse API
-                data: data.map(d => parseFloat(d.temp_avg)) 
+                data: data.map(d => parseFloat(d.temp_avg))
               }
             ]}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { x: { type: 'time', time: { unit: 'minute' } } }
-            }}
+            options={chartOptions}
           />
         </div>
 
@@ -51,16 +67,12 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
               labels={labels}
               datasets={[
                 { 
-                  label: "Avg Temp", 
-                  color: "#ff4d4d", 
-                  data: data.map(d => parseFloat(d.temp_avg)) 
+                  label: "RSSI (dBm)", 
+                  color: "#4d94ff", 
+                  data: data.map(d => parseInt(d.rssi_best)) 
                 }
               ]}
-              options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: { x: { type: 'time', time: { unit: 'minute' } } }
-              }}
+              options={chartOptions}
             />
         </div>
       </div>
