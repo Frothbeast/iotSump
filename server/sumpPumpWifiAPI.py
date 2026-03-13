@@ -38,15 +38,26 @@ cl1pURL = os.getenv('CL1P_URL')
 
 @app.route('/api/greenhouse/stats')
 def get_greenhouse_stats():
-    conn = mysql.connector.connect(**db_config)
+    # Get the 'id' from the URL, e.g., /api/greenhouse/stats?id=DISH_UNIT
+    device_id = request.args.get('id')
+
+    conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor(dictionary=True)
-    # Get last 1440 minutes (24 hours)
-    query = "SELECT * FROM v_greenhouse_summary LIMIT 1440"
-    cursor.execute(query)
+
+    if device_id:
+        # Filter for a specific device
+        query = "SELECT * FROM v_greenhouse_summary WHERE id = %s LIMIT 1440"
+        cursor.execute(query, (device_id,))
+    else:
+        # Fallback: return everything if no ID is specified
+        query = "SELECT * FROM v_greenhouse_summary LIMIT 1440"
+        cursor.execute(query)
+
     data = cursor.fetchall()
     cursor.close()
     conn.close()
-    return jsonify(data[::-1]) # Reverse for chronological order
+
+    return jsonify(data[::-1])  # Chronological order
 
 @app.route('/api/cl1p', methods=['POST'])
 def cl1p():
