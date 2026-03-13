@@ -52,12 +52,12 @@ def get_greenhouse_stats():
         query = """
             SELECT * FROM v_greenhouse_summary 
             WHERE esp_name = %s 
-            ORDER BY time_mark ASC 
+            ORDER BY time_mark DESC 
             LIMIT 1440
         """
         cursor.execute(query, (esp_identity,))
     else:
-        query = "SELECT * FROM v_greenhouse_summary ORDER BY time_mark ASC LIMIT 1440"
+        query = "SELECT * FROM v_greenhouse_summary ORDER BY time_mark DESC LIMIT 1440"
         cursor.execute(query)
 
     data = cursor.fetchall()
