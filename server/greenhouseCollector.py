@@ -1,5 +1,5 @@
 #
-# Dedicated Greenhouse Collector using the same .env
+# Dedicated Greenhouse Collector - Simplified Mimic Version
 #
 import os
 import sys
@@ -9,13 +9,11 @@ import json
 import mysql.connector
 from dotenv import load_dotenv
 from datetime import datetime
-from urllib.parse import parse_qs  # Added for robust parsing
 
 load_dotenv()
 
-# Use a different port if the Sump collector is already running on 1883
 BIND_HOST = os.getenv('BIND_HOST', '0.0.0.0')
-PORT = 1884  # Dedicated port for Greenhouse
+PORT = 1884
 DB_CONFIG = {
     'host': os.getenv('DB_HOST'),
     'user': os.getenv('DB_USER'),
@@ -25,13 +23,12 @@ DB_CONFIG = {
 
 
 def start_greenhouse_collector():
-    # Use context manager for server socket to ensure it closes properly
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_socket.bind((BIND_HOST, PORT))
         server_socket.listen(5)
 
-        print(f"Greenhouse Collector monitoring port {PORT}...")
+        print(f"Greenhouse Collector (Mimic Mode) on port {PORT}...")
 
         while True:
             try:
@@ -43,33 +40,29 @@ def start_greenhouse_collector():
 
                         if raw_str.startswith("payload="):
                             hex_str = raw_str.split("payload=")[1]
-                            # Decode Hex ASCII
+                            # Decode Hex to the raw string sent by ESP (e.g., "id=DISH&temp=22.5...")
                             plain_text = binascii.unhexlify(hex_str).decode('utf-8')
 
-                            # Correction: Use parse_qs instead of manual split to avoid "length 1; 2 is required"
-                            # payload_dict = dict(item.split("=") for item in plain_text.split("&"))
-                            parsed_params = parse_qs(plain_text)
-                            payload_dict = {k: v[0] for k, v in parsed_params.items()}
-
-                            # Add timestamp
-                            payload_dict['datetime'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            # Create a simple JSON object to keep the DB happy
+                            # This puts your entire string into one 'raw' field
+                            payload_data = {
+                                "raw": plain_text,
+                                "src_ip": addr[0],
+                                "datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            }
 
                             # Inject into Database
                             conn_db = mysql.connector.connect(**DB_CONFIG)
                             cursor = conn_db.cursor()
-                            # Assuming you want to store it in the greenhouse_log table
                             query = f"INSERT INTO {DB_CONFIG['database']}.greenhouse_log (payload) VALUES (%s)"
-                            cursor.execute(query, (json.dumps(payload_dict),))
-
+                            cursor.execute(query, (json.dumps(payload_data),))
                             conn_db.commit()
+
                             cursor.close()
                             conn_db.close()
 
                             conn.sendall(b"ACK\n")
-                            # Safely get ID and RSSI for console print
-                            device_id = payload_dict.get('id', 'Unknown')
-                            rssi = payload_dict.get('rssi', 'N/A')
-                            print(f"Logged from {addr[0]}: {device_id} | RSSI: {rssi}")
+                            print(f"Logged Raw Data: {plain_text}")
                         else:
                             conn.sendall(b"ERR_INVALID_FORMAT\n")
             except Exception as e:
