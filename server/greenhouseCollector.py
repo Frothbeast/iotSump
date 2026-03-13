@@ -49,7 +49,7 @@ def flush_device(device_id):
 
         conn_db = mysql.connector.connect(**db_config)
         cursor = conn_db.cursor()
-        query = f"INSERT INTO {db_config['database']}.greenhouse_log (payload) VALUES (%s)"
+        query = f"INSERT INTO {DB_CONFIG['database']}.greenhouse_log (payload) VALUES (%s)"
         cursor.execute(query, (json.dumps(summary_payload),))
         conn_db.commit()
         cursor.close()
