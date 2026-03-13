@@ -44,7 +44,7 @@ from flask import request, jsonify
 def get_greenhouse_stats():
     esp_identity = request.args.get('esp')
 
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
     if esp_identity:
