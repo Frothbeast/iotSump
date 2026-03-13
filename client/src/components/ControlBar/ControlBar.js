@@ -38,27 +38,36 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
         <div className="brand">Sump</div>
         <div className="serverTime"><span className="stLabel">Server Time:</span><span>{serverTime ?? "00:00:00"}</span></div>
       </div>
-
       <div className="centerSection">
         <div className="lastRun">
           <span className="label">Last Run</span>
           <span className="value">{columnStats?.lastTime ?? "N/a"} </span>
-          <span className="unit">{columnStats?.lastDate ?? "N/a"}</span>
+          <span className="unit">{columnStats?.lastDate ?? "N/a"} </span>
         </div>
-        <div className="statsRow">
-          <div className="statItem">
-            <span className="label">On</span>
-            <span className="value">{columnStats?.timeOn?.avg ?? 0}</span>
-            <span className="unit">s</span>
-          </div>
-          <div className="statItem">
-            <span className="label">Off</span>
-            <span className="value">{columnStats?.timeOff?.avg ?? 0}</span>
-            <span className="unit">m</span>
-          </div>
+        <div className="lastRunPeriod">
+          <span className="label">Last Period: </span>
+          <span className="value"> {(columnStats?.period ?? 0)} </span>
+          <span className="unit">minutes</span>
+        </div>
+        <div className="hoursSincePowerup">
+          <span className="label">Powered:</span>
+          <span className="value">{columnStats?.hoursOn ?? 0}</span>
+          <span className="unit">hours </span>
+        </div>
+        <div className="buttonRow">
+          <button className="sidebarButton" onClick={toggleSidebar}>
+            {isSidebarOpen ? "Close Chart" : "View Graph"}
+          </button>
+          <button onClick={cl1pClick} className="cl1pButton">CL1P</button>
+          <select className="selectedHours" value={selectedHours} onChange={(e) => onHoursChange(Number(e.target.value))}>
+            <option value={1}>1 Hour</option>
+            <option value={8}>8 Hour</option>
+            <option value={24}>24 Hour</option>
+            <option value={168}>168 Hour</option>
+          </select>
+          <button className="greenhouseButton" onClick={toggleGreenhouse}>{isGreenhouseOpen ? "Close Greenhouse" : "Greenhouse"}</button>
         </div>
       </div>
-
       <div className="chartSection">
         <div className="chartContainer">
           <div className="chartWatermark">ADC</div>
@@ -76,11 +85,11 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
                 data: sumpRecords.map(r => r.payload?.Hadc),
               }
             ]}
-            options={getOptions(0, 1024)}
+            options={getOptions(400, 1024)}
           />
         </div>
         <div className="chartContainer">
-          <div className="chartWatermark">STATS</div>
+          <div className="chartWatermark">TIME</div>
           <SumpChart
             labels={sumpRecords.map((_, i) => i)}
             datasets={[
@@ -117,38 +126,16 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
           <SumpChart
             labels={sumpRecords.map((_, i) => i)}
             datasets={[{
-              label: "period", color: "cyan",
+              label: "period",color: "cyan",
               data: sumpRecords.slice(1).map((r, i) => {
                 const current = new Date(r.payload?.datetime).getTime();
                 const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
-                return ( previous - current) / 60000;
+                return ( previous -current) / 60000;
               })}
             ]}
             options={getOptions(0, 100)}
           />
         </div>
-      </div>
-
-      <div className="menuSection">
-        <button className="greenhouseButton" onClick={toggleGreenhouse}>
-          {isGreenhouseOpen ? "Close Greenhouse" : "Greenhouse"}
-        </button>
-        <button className="cl1pButton" onClick={cl1pClick}>Cl1p</button>
-        <select 
-          className="selectedHours" 
-          value={selectedHours} 
-          onChange={(e) => onHoursChange(Number(e.target.value))}
-        >
-          <option value={1}>1h</option>
-          <option value={6}>6h</option>
-          <option value={12}>12h</option>
-          <option value={24}>24h</option>
-          <option value={48}>48h</option>
-          <option value={168}>1w</option>
-        </select>
-        <button className="sidebarButton" onClick={toggleSidebar}>
-          {isSidebarOpen ? "Close Stats" : "Stats"}
-        </button>
       </div>
     </header>
   );
