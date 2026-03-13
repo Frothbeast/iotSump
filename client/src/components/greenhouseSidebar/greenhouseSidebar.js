@@ -16,8 +16,8 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
 
   const labels = data.map(item => item.time_mark);
 
-  // Define shared options for a cleaner look and working time scale
-  const chartOptions = {
+  // Time-scale options are required for the data to render against time_mark strings
+  const greenhouseOptions = {
     responsive: true,
     maintainAspectRatio: false,
     scales: {
@@ -37,9 +37,6 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
 
   return (
     <div className={`greenhouse-sidebar ${isOpen ? 'open' : ''}`}>
-      {/* CORRECTION: Removed backslashes (\) from className and tags. 
-          The previous version had escaped quotes like className=\"sidebar-header\" which is a syntax error in JS/JSX.
-      */}
       <div className="sidebar-header">
         <h2>Greenhouse Monitor</h2>
         <button className="close-btn" onClick={closeSidebar}>&times;</button>
@@ -54,10 +51,10 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
               { 
                 label: "Average", 
                 color: "#ff4d4d", 
-                data: data.map(d => parseFloat(d.temp_avg))
+                data: data.map(d => parseFloat(d.temp_avg)) 
               }
             ]}
-            options={chartOptions}
+            options={greenhouseOptions}
           />
         </div>
 
@@ -67,12 +64,13 @@ const GreenhouseSidebar = ({ isOpen, closeSidebar }) => {
               labels={labels}
               datasets={[
                 { 
+                  // CORRECTION: Map to rssi_best, not temp_avg
                   label: "RSSI (dBm)", 
                   color: "#4d94ff", 
                   data: data.map(d => parseInt(d.rssi_best)) 
                 }
               ]}
-              options={chartOptions}
+              options={greenhouseOptions}
             />
         </div>
       </div>
