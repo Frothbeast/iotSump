@@ -41,7 +41,7 @@ def get_greenhouse_stats():
     # Get the 'id' from the URL, e.g., /api/greenhouse/stats?id=DISH_UNIT
     device_id = request.args.get('id')
 
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
     if device_id:
