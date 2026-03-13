@@ -38,7 +38,7 @@ cl1pURL = os.getenv('CL1P_URL')
 
 @app.route('/api/greenhouse/stats')
 def get_greenhouse_stats():
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
     # Get last 1440 minutes (24 hours)
     query = "SELECT * FROM v_greenhouse_summary LIMIT 1440"
