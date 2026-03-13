@@ -37,33 +37,30 @@ cl1pURL = os.getenv('CL1P_URL')
 
 from flask import request, jsonify
 
+from flask import request, jsonify
+
 
 @app.route('/api/greenhouse/stats')
 def get_greenhouse_stats():
-    # Capture the device name from the URL query string: ?device=DISH_UNIT
-    target_device = request.args.get('device')
+    # Capture the ESP identity from the URL: ?esp=DISH_UNIT
+    esp_identity = request.args.get('esp')
 
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
-    # We select 'id' explicitly so the frontend knows which ESP is which
-    if target_device:
+    if esp_identity:
+        # We query the view, filtering by the 'id' column
+        # (which in the VIEW we created earlier, is the ESP name string)
         query = """
-            SELECT id, time_mark, temp_avg, temp_high, temp_low, rssi_best, rssi_worst 
-            FROM v_greenhouse_summary 
+            SELECT * FROM v_greenhouse_summary 
             WHERE id = %s 
             ORDER BY time_mark ASC 
             LIMIT 1440
         """
-        cursor.execute(query, (target_device,))
+        cursor.execute(query, (esp_identity,))
     else:
-        # If no device is specified, return all (useful for multi-line charts)
-        query = """
-            SELECT id, time_mark, temp_avg, temp_high, temp_low, rssi_best, rssi_worst 
-            FROM v_greenhouse_summary 
-            ORDER BY time_mark ASC 
-            LIMIT 1440
-        """
+        # Return all if no specific ESP is requested
+        query = "SELECT * FROM v_greenhouse_summary ORDER BY time_mark ASC LIMIT 1440"
         cursor.execute(query)
 
     data = cursor.fetchall()

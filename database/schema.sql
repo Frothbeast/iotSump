@@ -13,16 +13,13 @@ CREATE TABLE IF NOT EXISTS greenhouse_log (
 
 CREATE OR REPLACE VIEW v_greenhouse_summary AS
 SELECT 
-    id,
+    -- This extracts the string name (e.g. 'DISH_UNIT') from the JSON
+    JSON_UNQUOTE(JSON_EXTRACT(payload, '$.id')) as esp_name,
     CAST(JSON_UNQUOTE(JSON_EXTRACT(payload, '$.temp_avg')) AS DECIMAL(10,2)) as temp_avg,
     CAST(JSON_UNQUOTE(JSON_EXTRACT(payload, '$.temp_high')) AS DECIMAL(10,2)) as temp_high,
     CAST(JSON_UNQUOTE(JSON_EXTRACT(payload, '$.temp_low')) AS DECIMAL(10,2)) as temp_low,
     CAST(JSON_UNQUOTE(JSON_EXTRACT(payload, '$.rssi_best')) AS SIGNED) as rssi_best,
     CAST(JSON_UNQUOTE(JSON_EXTRACT(payload, '$.rssi_worst')) AS SIGNED) as rssi_worst,
-    CAST(JSON_UNQUOTE(JSON_EXTRACT(payload, '$.readings_count')) AS UNSIGNED) as readings,
     CAST(JSON_UNQUOTE(JSON_EXTRACT(payload, '$.minute_mark')) AS DATETIME) as time_mark
 FROM greenhouse_log
-/* We don't need GROUP BY here because the Python script already 
-   did the math per ID before inserting the JSON. 
-   But we definitely want the ID column visible. */
-ORDER BY time_mark DESC, id ASC;
+ORDER BY time_mark DESC;
