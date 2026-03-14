@@ -3,17 +3,21 @@ services:
     image: mysql:8.0
     restart: always
     environment:
+      - TZ=America/Toronto
       - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
       - MYSQL_DATABASE=${DB_NAME}
       - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PASS}
     volumes:
       - db_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
     networks:
       - sump-network
 
   sump-service:
     build: .
+    environment:
+      - TZ=America/Toronto
     restart: always
     ports:
       - "5001:5000"

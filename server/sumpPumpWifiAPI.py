@@ -11,12 +11,18 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 import requests
 import urllib3
-import subprocess
+
 import sys
 
 lastRunTime = None
+
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
-app = Flask(__name__, static_folder='../client/build', static_url_path='/')
+
+template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'client', 'build'))
+
+app = Flask(__name__,
+            static_folder=template_dir,
+            static_url_path='/')
 
 CORS(app)
 
@@ -26,19 +32,13 @@ cl1pURL = os.getenv('CL1P_URL')
 
 sys.stderr.write(f"DEBUG: Current location environment variable: {location}\n")
 sys.stderr.flush()
+
 db_config = {
   'host': os.getenv('DB_HOST'),
   'user': os.getenv('DB_USER'),
   'password': os.getenv('DB_PASS'),
   'database': os.getenv('DB_NAME')
 }
-
-cl1pURL = os.getenv('CL1P_URL')
-
-from flask import request, jsonify
-
-from flask import request, jsonify
-
 
 @app.route('/api/cl1p', methods=['POST'])
 def cl1p():
@@ -131,7 +131,6 @@ def cl1p():
 
 @app.route('/api/time', methods=['GET'])
 def get_time():
-    # %I is 12-hour clock, %M is minutes, %p is AM/PM
     now = datetime.now()
     server_time = now.strftime("%I:%M %p")
     return jsonify({"time": server_time})
@@ -140,10 +139,14 @@ def get_time():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-  import os
-  if not os.path.exists(os.path.join(app.static_folder, 'index.html')):
-    return f"Error: index.html not found in {app.static_folder}", 404
-  return send_from_directory(app.static_folder, 'index.html')
+    import os
+    file_path = os.path.join(app.static_folder, path)
+    if path != "" and os.path.exists(file_path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        if not os.path.exists(os.path.join(app.static_folder, 'index.html')):
+            return f"Error: index.html not found in {app.static_folder}", 404
+        return send_from_directory(app.static_folder, 'index.html')
 
 
 @app.route('/api/sumpData', methods=['GET'])

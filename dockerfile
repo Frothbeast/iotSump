@@ -25,6 +25,9 @@ COPY server/ ./
 
 # Copy the built React files into the static folder Flask uses
 # Based on your App initialization: static_folder='../client/build'
+RUN mkdir -p /app/client/build
+# COPY --from=build-stage /app/client/build /app/client/build
+# Corrected: Match the stage name defined in Step 1
 COPY --from=build-step /app/client/build /app/client/build
 
 EXPOSE 5000
