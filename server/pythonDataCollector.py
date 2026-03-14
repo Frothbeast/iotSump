@@ -15,7 +15,7 @@ import urllib3
 cwd = os.getcwd()
 print(f"INFO: Current Working Directory: {cwd}", file=sys.stderr)
 sys.stderr.flush()
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 lastRunTime = None
 
 # New global variables to track state for packet comparison

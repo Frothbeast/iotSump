@@ -10,7 +10,7 @@ from urllib.parse import parse_qs
 from dotenv import load_dotenv
 from datetime import datetime
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 BIND_HOST = os.getenv('BIND_HOST', '0.0.0.0')
 PORT = 1884

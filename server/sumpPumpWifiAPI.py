@@ -15,7 +15,7 @@ import subprocess
 import sys
 
 lastRunTime = None
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
 CORS(app)
@@ -39,32 +39,6 @@ from flask import request, jsonify
 
 from flask import request, jsonify
 
-
-@app.route('/api/greenhouse/stats')
-def get_greenhouse_stats():
-    esp_identity = request.args.get('esp')
-
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
-
-    if esp_identity:
-        # Changed 'id' to 'esp_name' to match the View definition
-        query = """
-            SELECT * FROM v_greenhouse_summary 
-            WHERE esp_name = %s 
-            ORDER BY time_mark DESC 
-            LIMIT 1440
-        """
-        cursor.execute(query, (esp_identity,))
-    else:
-        query = "SELECT * FROM v_greenhouse_summary ORDER BY time_mark DESC LIMIT 1440"
-        cursor.execute(query)
-
-    data = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    return jsonify(data)
 
 @app.route('/api/cl1p', methods=['POST'])
 def cl1p():

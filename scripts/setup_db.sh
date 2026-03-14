@@ -5,10 +5,10 @@ sudo sed -i 's/bind-address.*/bind-address = 127.0.0.1/' /etc/mysql/mysql.conf.d
 sudo systemctl restart mysql
 sudo systemctl enable mysql
 
-if [ -f ../server/.env ]; then
-    export $(grep -v '^#' ../server/.env | xargs)
+if [ -f ../.env ]; then
+    export $(grep -v '^#' ../.env | xargs)
 else
-    echo ".env file not found in ../server directory. Please create one from ../server/.env.example"
+    echo ".env file not found in root directory. Please create one from .env.example"
     exit 1
 fi
 
