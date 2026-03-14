@@ -11,14 +11,24 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 import requests
 import urllib3
-
 import sys
 
 lastRunTime = None
 
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+# Corrected: Logic to find .env in the root whether running locally or in Docker
+# Looking one level up from /server/sumpPumpWifiAPI.py
+possible_env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+if os.path.exists(possible_env_path):
+    load_dotenv(possible_env_path)
+else:
+    # Fallback for local execution if already in root
+    load_dotenv('.env')
 
-template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'client', 'build'))
+# Corrected: Logic to find React build folder in both environments
+# Docker uses /app/client/build, Local development usually uses ../client/build
+docker_path = '/app/client/build'
+local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'client', 'build'))
+template_dir = docker_path if os.path.exists(docker_path) else local_path
 
 app = Flask(__name__,
             static_folder=template_dir,
@@ -136,6 +146,7 @@ def get_time():
     return jsonify({"time": server_time})
 
 
+# Corrected: Updated serve route with fallback logic for React routing and absolute paths
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
@@ -144,7 +155,8 @@ def serve(path):
     if path != "" and os.path.exists(file_path):
         return send_from_directory(app.static_folder, path)
     else:
-        if not os.path.exists(os.path.join(app.static_folder, 'index.html')):
+        index_path = os.path.join(app.static_folder, 'index.html')
+        if not os.path.exists(index_path):
             return f"Error: index.html not found in {app.static_folder}", 404
         return send_from_directory(app.static_folder, 'index.html')
 
@@ -224,10 +236,12 @@ def handle_data():
 @app.errorhandler(404)
 def not_found(e):
   import os
-  if not os.path.exists(os.path.join(app.static_folder, 'index.html')):
+  index_path = os.path.join(app.static_folder, 'index.html')
+  if not os.path.exists(index_path):
     return "Fallback failed: index.html missing", 404
   return send_from_directory(app.static_folder, 'index.html')
 
 
 if __name__ == '__main__':
+  # The host 0.0.0.0 is necessary for Docker to allow external access to the container
   app.run(host='0.0.0.0', port=5000, debug=True)
