@@ -1,0 +1,31 @@
+services:
+  database:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASS}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - sump-network
+
+  sump-service:
+    build: .
+    restart: always
+    ports:
+      - "5001:5000"
+    env_file: .env
+    depends_on:
+      - database
+    networks:
+      - sump-network
+
+networks:
+  sump-network:
+    driver: bridge
+
+volumes:
+  db_data:
