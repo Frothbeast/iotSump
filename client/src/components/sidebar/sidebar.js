@@ -10,6 +10,7 @@ ChartJS.register(...registerables, zoomPlugin);
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
 
+  // Calculate dynamic maximums for the two "Time" related charts
   const dynamicMaxs = useMemo(() => {
     const onTimeVals = sumpRecords.map(r => r.payload?.timeOn || 0);
     const offTimeVals = sumpRecords.map(r => r.payload?.timeOff || 0);
@@ -26,55 +27,56 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
     };
   }, [sumpRecords]);
 
-  const createConfig = (unit, yMin, yMax) => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-        align: 'start',
-        labels: { boxWidth: 40, boxHeight: 2, padding: 1, font: { size: 22 }, color: 'lightgrey' }
-      },
-      zoom: {
-        limits: { 
-          x: { 
-            min: sumpRecords.length > 0 ? new Date(sumpRecords[0].payload?.datetime).getTime() : 'original', 
-            max: sumpRecords.length > 0 ? new Date(sumpRecords[sumpRecords.length - 1].payload?.datetime).getTime() : 'original' 
-          }, 
-          y: { min: yMin, max: yMax } 
+  const createConfig = (unit, yMin, yMax) => {
+    const xMin = sumpRecords.length > 0 ? new Date(sumpRecords[0].payload?.datetime).getTime() : undefined;
+    const xMax = sumpRecords.length > 0 ? new Date(sumpRecords[sumpRecords.length - 1].payload?.datetime).getTime() : undefined;
+
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'start',
+          labels: { boxWidth: 40, boxHeight: 2, padding: 1, font: { size: 22 }, color: 'lightgrey' }
         },
-        pan: { enabled: true, mode: 'xy' },
-        zoom: { 
-          wheel: { enabled: true }, 
-          pinch: { enabled: true }, 
-          mode: 'xy',
-          // Ensure we can't zoom out past the data
-          overScaleMode: 'xy'
+        zoom: {
+          limits: { 
+            x: { min: xMin, max: xMax }, 
+            y: { min: yMin, max: yMax } 
+          },
+          pan: { enabled: true, mode: 'xy' },
+          zoom: { 
+            wheel: { enabled: true }, 
+            pinch: { enabled: true }, 
+            mode: 'xy',
+            overScaleMode: 'xy'
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: { unit: unit, displayFormats: { minute: 'h:mm a', hour: 'h a', day: 'MMM d' } },
+          display: true,
+          ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
+          grid: { color: 'rgba(255, 255, 255, 0.42)' },
+          // Restoring min/max to establish the initial "zoomed out" view
+          min: xMin,
+          max: xMax
+        },
+        y: { 
+          display: true, 
+          ticks: { color: 'grey' }, 
+          grace: '10%', 
+          grid: { color: 'rgba(255, 255, 255, 0.42)' },
+          min: yMin,
+          max: yMax
         }
       }
-    },
-    scales: {
-      x: {
-        type: 'time',
-        time: { unit: unit, displayFormats: { minute: 'h:mm a', hour: 'h a', day: 'MMM d' } },
-        display: true,
-        ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
-        grid: { color: 'rgba(255, 255, 255, 0.42)' },
-        // Removing explicit min/max from scales to allow the zoom plugin to manage the viewport
-        // min: sumpRecords.length > 0 ? sumpRecords[0].payload?.datetime : undefined,
-        // max: sumpRecords.length > 0 ? sumpRecords[sumpRecords.length - 1].payload?.datetime : undefined
-      },
-      y: { 
-        display: true, 
-        ticks: { color: 'grey' }, 
-        grace: '10%', 
-        grid: { color: 'rgba(255, 255, 255, 0.42)' },
-        min: yMin,
-        max: yMax
-      }
-    }
-  });
+    };
+  };
 
   const opt1 = useMemo(() => createConfig(timeUnit, 500, 1024), [timeUnit, sumpRecords]);
   const opt2 = useMemo(() => createConfig(timeUnit, 0, dynamicMaxs.timeMax), [timeUnit, sumpRecords, dynamicMaxs.timeMax]);
