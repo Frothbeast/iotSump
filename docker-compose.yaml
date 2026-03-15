@@ -20,7 +20,7 @@ services:
       - TZ=America/Toronto
     restart: always
     ports:
-      - "5000:5000"
+      - "${API_PORT}:${API_PORT}"
     env_file: .env
     depends_on:
       - database
