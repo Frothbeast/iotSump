@@ -29,7 +29,7 @@ cl1pToken = os.getenv('CL1P_TOKEN')
 cl1pURL = os.getenv('CL1P_URL')
 
 db_config = {
-    'host': os.getenv('DB_HOST'),
+    'host': os.getenv('DB_HOST', '127.0.0.1'),
     'user': os.getenv('DB_USER'),
     'password': os.getenv('DB_PASS'),
     'database': os.getenv('DB_NAME'),

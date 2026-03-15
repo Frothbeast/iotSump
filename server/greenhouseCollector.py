@@ -15,7 +15,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 BIND_HOST = os.getenv('BIND_HOST', '0.0.0.0')
 PORT = 1884
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST'),
+    'host': os.getenv('DB_HOST', '127.0.0.1'),
     'user': os.getenv('DB_USER'),
     'password': os.getenv('DB_PASS'),
     'database': os.getenv('DB_NAME'),
