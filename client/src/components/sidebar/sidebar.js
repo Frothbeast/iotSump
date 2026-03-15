@@ -10,49 +10,9 @@ ChartJS.register(...registerables, zoomPlugin);
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
 
-  // const createConfig = (unit, yMin, yMax) => ({
-  //   responsive: true,
-  //   maintainAspectRatio: false,
-  //   plugins: {
-  //     legend: {
-  //       display: true,
-  //       position: 'top',
-  //       align: 'start',
-  //       labels: { boxWidth: 40, boxHeight: 2, padding: 1, font: { size: 22 }, color: 'lightgrey' }
-  //     },
-  //     zoom: {
-  //       limits: { 
-  //         x: { min: 'original', max: 'original' }, 
-  //         y: { min: yMin ?? 'original', max: yMax ?? 'original' } 
-  //       },
-  //       pan: { enabled: true, mode: 'xy' },
-  //       zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
-  //     }
-  //   },
-  //   scales: {
-  //     x: {
-  //       type: 'time',
-  //       time: { unit: unit, displayFormats: { minute: 'h:mm a', hour: 'h a', day: 'MMM d' } },
-  //       display: true,
-  //       ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
-  //       grid: { color: 'rgba(255, 255, 255, 0.42)' },
-  //       min: sumpRecords.length > 0 ? sumpRecords[0].payload?.datetime : undefined,
-  //       max: sumpRecords.length > 0 ? sumpRecords[sumpRecords.length - 1].payload?.datetime : undefined
-  //     },
-  //     y: { 
-  //       display: true, 
-  //       ticks: { color: 'grey' }, 
-  //       grace: '10%', 
-  //       grid: { color: 'rgba(255, 255, 255, 0.42)' },
-  //       min: yMin,
-  //       max: yMax
-  //     }
-  //   }
-  // });
-
-  const createConfig = (unit, yMin, yMaxFloor, dataKey) => {
-    const xMin = sumpRecords.length > 0 ? sumpRecords[0].payload?.datetime : undefined;
-    const xMax = sumpRecords.length > 0 ? sumpRecords[sumpRecords.length - 1].payload?.datetime : undefined;
+  const createConfig = (unit, yMin, yMaxInitial, dataKey) => {
+    const xMin = sumpRecords.length > 0 ? new Date(sumpRecords[0].payload?.datetime).getTime() : undefined;
+    const xMax = sumpRecords.length > 0 ? new Date(sumpRecords[sumpRecords.length - 1].payload?.datetime).getTime() : undefined;
 
     let dataPeak = 0;
     if (dataKey === 'time') {
@@ -65,7 +25,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
       }));
     }
 
-    const finalYMax = Math.max(yMaxFloor, dataPeak);
+    const finalYMax = Math.max(yMaxInitial, dataPeak);
 
     return {
       responsive: true,
@@ -79,13 +39,18 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         },
         zoom: {
           limits: { 
-            // Setting limits to explicit values rather than 'original' ensures zoom-out stops 
-            // exactly at the current data boundaries and your conditional max.
+            // Strictly enforce limits to match the initial scale values
+            // This prevents zooming out beyond the data range or the conditional max
             x: { min: xMin, max: xMax }, 
             y: { min: yMin, max: finalYMax } 
           },
           pan: { enabled: true, mode: 'xy' },
-          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+          zoom: { 
+            wheel: { enabled: true }, 
+            pinch: { enabled: true }, 
+            mode: 'xy',
+            // overScaleMode: 'xy' 
+          }
         }
       },
       scales: {
