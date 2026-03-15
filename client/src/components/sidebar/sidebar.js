@@ -9,35 +9,6 @@ ChartJS.register(...registerables, zoomPlugin);
 
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
-
-  // const createConfig = (unit) => ({
-  //   responsive: true,
-  //   maintainAspectRatio: false,
-  //   plugins: {
-  //     legend: {
-  //       display: true,
-  //       position: 'top',
-  //       align: 'start',
-  //       labels: { boxWidth: 40, boxHeight: 2, padding: 1, font: { size: 22 }, color: 'lightgrey' }
-  //     },
-  //     zoom: {
-  //       limits: { x: { min: 'original', max: 'original' }, y: { min: 'original', max: 'original' } },
-  //       pan: { enabled: true, mode: 'xy' },
-  //       zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
-  //     }
-  //   },
-  //   scales: {
-  //     x: {
-  //       type: 'time',
-  //       time: { unit: unit, displayFormats: { minute: 'h:mm a', hour: 'h a', day: 'MMM d' } },
-  //       display: true,
-  //       ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
-  //       grid: { color: 'rgba(255, 255, 255, 0.42)' }
-  //     },
-  //     y: { display: true, ticks: { color: 'grey' }, grace: '10%', grid: { color: 'rgba(255, 255, 255, 0.42)' } }
-  //   }
-  // });
-
   const createConfig = (unit, yMin, yMax) => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -78,10 +49,10 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
     }
   });
 
-  const opt1 = useMemo(() => createConfig(timeUnit, 0, 1024), [timeUnit, sumpRecords]);
-  const opt2 = useMemo(() => createConfig(timeUnit, 0, undefined), [timeUnit, sumpRecords]);
+  const opt1 = useMemo(() => createConfig(timeUnit, 500, 1024), [timeUnit, sumpRecords]);
+  const opt2 = useMemo(() => createConfig(timeUnit, 0, 500), [timeUnit, sumpRecords]);
   const opt3 = useMemo(() => createConfig(timeUnit, 0, 100), [timeUnit, sumpRecords]);
-  const opt4 = useMemo(() => createConfig(timeUnit, 0, undefined), [timeUnit, sumpRecords]);
+  const opt4 = useMemo(() => createConfig(timeUnit, 0, 60), [timeUnit, sumpRecords]);
 
   const labels = sumpRecords.map(r => r.payload?.datetime);
 
