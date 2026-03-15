@@ -35,14 +35,25 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   //       time: { unit: unit, displayFormats: { minute: 'h:mm a', hour: 'h a', day: 'MMM d' } },
   //       display: true,
   //       ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
-  //       grid: { color: 'rgba(255, 255, 255, 0.42)' }
+  //       grid: { color: 'rgba(255, 255, 255, 0.42)' },
+  //       min: sumpRecords.length > 0 ? sumpRecords[0].payload?.datetime : undefined,
+  //       max: sumpRecords.length > 0 ? sumpRecords[sumpRecords.length - 1].payload?.datetime : undefined
   //     },
-  //     y: { display: true, ticks: { color: 'grey' }, grace: '10%', grid: { color: 'rgba(255, 255, 255, 0.42)' } }
+  //     y: { 
+  //       display: true, 
+  //       ticks: { color: 'grey' }, 
+  //       grace: '10%', 
+  //       grid: { color: 'rgba(255, 255, 255, 0.42)' },
+  //       min: yMin,
+  //       max: yMax
+  //     }
   //   }
   // });
 
   const createConfig = (unit, yMin, yMaxFloor, dataKey) => {
-    // 1. Determine the highest value currently in the data for this specific chart
+    const xMin = sumpRecords.length > 0 ? sumpRecords[0].payload?.datetime : undefined;
+    const xMax = sumpRecords.length > 0 ? sumpRecords[sumpRecords.length - 1].payload?.datetime : undefined;
+
     let dataPeak = 0;
     if (dataKey === 'time') {
       dataPeak = Math.max(0, ...sumpRecords.map(r => r.payload?.timeOn || 0), ...sumpRecords.map(r => r.payload?.timeOff || 0));
@@ -54,7 +65,6 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
       }));
     }
 
-    // 2. The Y-Axis "Original" max is either your chosen floor (e.g. 500) or the dataPeak, whichever is greater
     const finalYMax = Math.max(yMaxFloor, dataPeak);
 
     return {
@@ -69,9 +79,10 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         },
         zoom: {
           limits: { 
-            // 'original' tells the plugin to reset to the min/max values defined in 'scales' below
-            x: { min: 'original', max: 'original' }, 
-            y: { min: 'original', max: 'original' } 
+            // Setting limits to explicit values rather than 'original' ensures zoom-out stops 
+            // exactly at the current data boundaries and your conditional max.
+            x: { min: xMin, max: xMax }, 
+            y: { min: yMin, max: finalYMax } 
           },
           pan: { enabled: true, mode: 'xy' },
           zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
@@ -84,9 +95,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           display: true,
           ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
           grid: { color: 'rgba(255, 255, 255, 0.42)' },
-          // Sets the zoom-out horizontal limit to the current data range
-          min: sumpRecords.length > 0 ? sumpRecords[0].payload?.datetime : undefined,
-          max: sumpRecords.length > 0 ? sumpRecords[sumpRecords.length - 1].payload?.datetime : undefined
+          min: xMin,
+          max: xMax
         },
         y: { 
           display: true, 
@@ -94,7 +104,6 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           grace: '10%', 
           grid: { color: 'rgba(255, 255, 255, 0.42)' },
           min: yMin,
-          // Sets the zoom-out vertical limit to our conditional maximum
           max: finalYMax
         }
       }
