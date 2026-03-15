@@ -55,6 +55,7 @@ NEW_USER="frothbeast"
 WSL_DISTRO_NAME="Ubuntu"
 if [[ -n "$WSL_DISTRO_NAME" ]] || grep -iq "Microsoft" /proc/version; then
     echo "WSL environment detected ($WSL_DISTRO_NAME). Starting setup..."
+    printf "[boot]\nsystemd=true\n" | sudo tee /etc/wsl.conf
     sudo adduser --gecos "" "$NEW_USER"
     sudo usermod -aG sudo "$NEW_USER"
     sudo bash -c "printf '[user]\ndefault=$NEW_USER\n' > /etc/wsl.conf"
