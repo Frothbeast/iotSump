@@ -10,10 +10,10 @@ ChartJS.register(...registerables, zoomPlugin);
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
 
-  const dynamicMaxs = useMemo(() => {
+  // Calculate the conditional maximums
+  const limits = useMemo(() => {
     const onTimeVals = sumpRecords.map(r => r.payload?.timeOn || 0);
     const offTimeVals = sumpRecords.map(r => r.payload?.timeOff || 0);
-    
     const intervalVals = sumpRecords.slice(1).map((r, i) => {
       const current = new Date(r.payload?.datetime).getTime();
       const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
@@ -21,70 +21,64 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
     });
 
     return {
+      // Use 500 OR the highest data point, whichever is greater
       timeMax: Math.max(500, ...onTimeVals, ...offTimeVals),
-      intervalMax: Math.max(60, ...intervalVals)
+      // Use 60 OR the highest data point, whichever is greater
+      intervalMax: Math.max(60, ...intervalVals),
+      // X-axis boundaries
+      xMin: sumpRecords.length > 0 ? sumpRecords[0].payload?.datetime : undefined,
+      xMax: sumpRecords.length > 0 ? sumpRecords[sumpRecords.length - 1].payload?.datetime : undefined
     };
   }, [sumpRecords]);
 
-  const createConfig = (unit, yMin, yMax) => {
-    // We calculate these for the limits, but we won't force them into the scales
-    const xMinLimit = sumpRecords.length > 0 ? new Date(sumpRecords[0].payload?.datetime).getTime() : undefined;
-    const xMaxLimit = sumpRecords.length > 0 ? new Date(sumpRecords[sumpRecords.length - 1].payload?.datetime).getTime() : undefined;
-
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          align: 'start',
-          labels: { boxWidth: 40, boxHeight: 2, padding: 1, font: { size: 22 }, color: 'lightgrey' }
-        },
-        zoom: {
-          limits: { 
-            x: { min: xMinLimit, max: xMaxLimit }, 
-            y: { min: yMin, max: yMax } 
-          },
-          pan: { 
-            enabled: true, 
-            mode: 'xy',
-            threshold: 5 // Prevents accidental pans
-          },
-          zoom: { 
-            wheel: { enabled: true }, 
-            pinch: { enabled: true }, 
-            mode: 'xy'
-          }
-        }
+  const createConfig = (unit, yMin, yMax) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        align: 'start',
+        labels: { boxWidth: 40, boxHeight: 2, padding: 1, font: { size: 22 }, color: 'lightgrey' }
       },
-      scales: {
-        x: {
-          type: 'time',
-          time: { unit: unit, displayFormats: { minute: 'h:mm a', hour: 'h a', day: 'MMM d' } },
-          display: true,
-          ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
-          grid: { color: 'rgba(255, 255, 255, 0.42)' },
-          // min: xMin,
-          // max: xMax
-          // Leaving these undefined allows the zoom plugin to "see" the range and enable zooming.
+      zoom: {
+        limits: { 
+          x: { min: 'original', max: 'original' }, 
+          y: { min: 'original', max: 'original' } 
         },
-        y: { 
-          display: true, 
-          ticks: { color: 'grey' }, 
-          grace: '10%', 
-          grid: { color: 'rgba(255, 255, 255, 0.42)' },
-          min: yMin,
-          max: yMax
-        }
+        pan: { enabled: true, mode: 'xy' },
+        zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
       }
-    };
-  };
+    },
+    scales: {
+      x: {
+        type: 'time',
+        time: { unit: unit, displayFormats: { minute: 'h:mm a', hour: 'h a', day: 'MMM d' } },
+        display: true,
+        ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
+        grid: { color: 'rgba(255, 255, 255, 0.42)' },
+        // Fixed X scales based on current records
+        min: limits.xMin,
+        max: limits.xMax
+      },
+      y: { 
+        display: true, 
+        ticks: { color: 'grey' }, 
+        grace: '10%', 
+        grid: { color: 'rgba(255, 255, 255, 0.42)' },
+        // Conditional Y scales
+        min: yMin,
+        max: yMax
+      }
+    }
+  });
 
-  const opt1 = useMemo(() => createConfig(timeUnit, 500, 1024), [timeUnit, sumpRecords]);
-  const opt2 = useMemo(() => createConfig(timeUnit, 0, dynamicMaxs.timeMax), [timeUnit, sumpRecords, dynamicMaxs.timeMax]);
-  const opt3 = useMemo(() => createConfig(timeUnit, 0, 100), [timeUnit, sumpRecords]);
-  const opt4 = useMemo(() => createConfig(timeUnit, 0, dynamicMaxs.intervalMax), [timeUnit, sumpRecords, dynamicMaxs.intervalMax]);
+  const opt1 = useMemo(() => createConfig(timeUnit, 500, 1024), [timeUnit, limits]);
+  // const opt2 = useMemo(() => createConfig(timeUnit, 0, 500), [timeUnit, sumpRecords]);
+  const opt2 = useMemo(() => createConfig(timeUnit, 0, limits.timeMax), [timeUnit, limits]);
+  const opt3 = useMemo(() => createConfig(timeUnit, 0, 100), [timeUnit, limits]);
+  // const opt4 = useMemo(() => createConfig(timeUnit, 0, 60), [timeUnit, sumpRecords]);
+  const opt4 = useMemo(() => createConfig(timeUnit, 0, limits.intervalMax), [timeUnit, limits]);
 
   const labels = sumpRecords.map(r => r.payload?.datetime);
 
