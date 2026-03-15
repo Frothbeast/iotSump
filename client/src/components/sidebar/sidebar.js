@@ -10,7 +10,6 @@ ChartJS.register(...registerables, zoomPlugin);
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
 
-  // Calculate dynamic maximums for the two "Time" related charts
   const dynamicMaxs = useMemo(() => {
     const onTimeVals = sumpRecords.map(r => r.payload?.timeOn || 0);
     const offTimeVals = sumpRecords.map(r => r.payload?.timeOff || 0);
@@ -18,14 +17,11 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
     const intervalVals = sumpRecords.slice(1).map((r, i) => {
       const current = new Date(r.payload?.datetime).getTime();
       const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
-      // Calculations assume current is later than previous, so (current - previous)
       return (current - previous) / 60000;
     });
 
     return {
-      // Set to 500 or the largest data point, whichever is greater
       timeMax: Math.max(500, ...onTimeVals, ...offTimeVals),
-      // Set to 60 or the largest data point, whichever is greater
       intervalMax: Math.max(60, ...intervalVals)
     };
   }, [sumpRecords]);
@@ -42,11 +38,20 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
       },
       zoom: {
         limits: { 
-          x: { min: 'original', max: 'original' }, 
-          y: { min: yMin ?? 'original', max: yMax ?? 'original' } 
+          x: { 
+            min: sumpRecords.length > 0 ? new Date(sumpRecords[0].payload?.datetime).getTime() : 'original', 
+            max: sumpRecords.length > 0 ? new Date(sumpRecords[sumpRecords.length - 1].payload?.datetime).getTime() : 'original' 
+          }, 
+          y: { min: yMin, max: yMax } 
         },
         pan: { enabled: true, mode: 'xy' },
-        zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+        zoom: { 
+          wheel: { enabled: true }, 
+          pinch: { enabled: true }, 
+          mode: 'xy',
+          // Ensure we can't zoom out past the data
+          overScaleMode: 'xy'
+        }
       }
     },
     scales: {
@@ -56,8 +61,9 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         display: true,
         ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
         grid: { color: 'rgba(255, 255, 255, 0.42)' },
-        min: sumpRecords.length > 0 ? sumpRecords[0].payload?.datetime : undefined,
-        max: sumpRecords.length > 0 ? sumpRecords[sumpRecords.length - 1].payload?.datetime : undefined
+        // Removing explicit min/max from scales to allow the zoom plugin to manage the viewport
+        // min: sumpRecords.length > 0 ? sumpRecords[0].payload?.datetime : undefined,
+        // max: sumpRecords.length > 0 ? sumpRecords[sumpRecords.length - 1].payload?.datetime : undefined
       },
       y: { 
         display: true, 
@@ -71,10 +77,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   });
 
   const opt1 = useMemo(() => createConfig(timeUnit, 500, 1024), [timeUnit, sumpRecords]);
-  // const opt2 = useMemo(() => createConfig(timeUnit, 0, 500), [timeUnit, sumpRecords]);
   const opt2 = useMemo(() => createConfig(timeUnit, 0, dynamicMaxs.timeMax), [timeUnit, sumpRecords, dynamicMaxs.timeMax]);
   const opt3 = useMemo(() => createConfig(timeUnit, 0, 100), [timeUnit, sumpRecords]);
-  // const opt4 = useMemo(() => createConfig(timeUnit, 0, 60), [timeUnit, sumpRecords]);
   const opt4 = useMemo(() => createConfig(timeUnit, 0, dynamicMaxs.intervalMax), [timeUnit, sumpRecords, dynamicMaxs.intervalMax]);
 
   const labels = sumpRecords.map(r => r.payload?.datetime);
