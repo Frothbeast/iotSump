@@ -10,7 +10,6 @@ ChartJS.register(...registerables, zoomPlugin);
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
 
-  // Calculate dynamic maximums for the two "Time" related charts
   const dynamicMaxs = useMemo(() => {
     const onTimeVals = sumpRecords.map(r => r.payload?.timeOn || 0);
     const offTimeVals = sumpRecords.map(r => r.payload?.timeOff || 0);
@@ -28,8 +27,9 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   }, [sumpRecords]);
 
   const createConfig = (unit, yMin, yMax) => {
-    const xMin = sumpRecords.length > 0 ? new Date(sumpRecords[0].payload?.datetime).getTime() : undefined;
-    const xMax = sumpRecords.length > 0 ? new Date(sumpRecords[sumpRecords.length - 1].payload?.datetime).getTime() : undefined;
+    // We calculate these for the limits, but we won't force them into the scales
+    const xMinLimit = sumpRecords.length > 0 ? new Date(sumpRecords[0].payload?.datetime).getTime() : undefined;
+    const xMaxLimit = sumpRecords.length > 0 ? new Date(sumpRecords[sumpRecords.length - 1].payload?.datetime).getTime() : undefined;
 
     return {
       responsive: true,
@@ -43,15 +43,18 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         },
         zoom: {
           limits: { 
-            x: { min: xMin, max: xMax }, 
+            x: { min: xMinLimit, max: xMaxLimit }, 
             y: { min: yMin, max: yMax } 
           },
-          pan: { enabled: true, mode: 'xy' },
+          pan: { 
+            enabled: true, 
+            mode: 'xy',
+            threshold: 5 // Prevents accidental pans
+          },
           zoom: { 
             wheel: { enabled: true }, 
             pinch: { enabled: true }, 
-            mode: 'xy',
-            overScaleMode: 'xy'
+            mode: 'xy'
           }
         }
       },
@@ -62,9 +65,9 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           display: true,
           ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
           grid: { color: 'rgba(255, 255, 255, 0.42)' },
-          // Restoring min/max to establish the initial "zoomed out" view
-          min: xMin,
-          max: xMax
+          // min: xMin,
+          // max: xMax
+          // Leaving these undefined allows the zoom plugin to "see" the range and enable zooming.
         },
         y: { 
           display: true, 
