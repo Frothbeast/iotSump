@@ -9,6 +9,27 @@ ChartJS.register(...registerables, zoomPlugin);
 
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
+
+  // Calculate dynamic maximums for the two "Time" related charts
+  const dynamicMaxs = useMemo(() => {
+    const onTimeVals = sumpRecords.map(r => r.payload?.timeOn || 0);
+    const offTimeVals = sumpRecords.map(r => r.payload?.timeOff || 0);
+    
+    const intervalVals = sumpRecords.slice(1).map((r, i) => {
+      const current = new Date(r.payload?.datetime).getTime();
+      const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
+      // Calculations assume current is later than previous, so (current - previous)
+      return (current - previous) / 60000;
+    });
+
+    return {
+      // Set to 500 or the largest data point, whichever is greater
+      timeMax: Math.max(500, ...onTimeVals, ...offTimeVals),
+      // Set to 60 or the largest data point, whichever is greater
+      intervalMax: Math.max(60, ...intervalVals)
+    };
+  }, [sumpRecords]);
+
   const createConfig = (unit, yMin, yMax) => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -50,9 +71,11 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   });
 
   const opt1 = useMemo(() => createConfig(timeUnit, 500, 1024), [timeUnit, sumpRecords]);
-  const opt2 = useMemo(() => createConfig(timeUnit, 0, 500), [timeUnit, sumpRecords]);
+  // const opt2 = useMemo(() => createConfig(timeUnit, 0, 500), [timeUnit, sumpRecords]);
+  const opt2 = useMemo(() => createConfig(timeUnit, 0, dynamicMaxs.timeMax), [timeUnit, sumpRecords, dynamicMaxs.timeMax]);
   const opt3 = useMemo(() => createConfig(timeUnit, 0, 100), [timeUnit, sumpRecords]);
-  const opt4 = useMemo(() => createConfig(timeUnit, 0, 60), [timeUnit, sumpRecords]);
+  // const opt4 = useMemo(() => createConfig(timeUnit, 0, 60), [timeUnit, sumpRecords]);
+  const opt4 = useMemo(() => createConfig(timeUnit, 0, dynamicMaxs.intervalMax), [timeUnit, sumpRecords, dynamicMaxs.intervalMax]);
 
   const labels = sumpRecords.map(r => r.payload?.datetime);
 
@@ -94,7 +117,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
               data: sumpRecords.slice(1).map((r, i) => {
                 const current = new Date(r.payload?.datetime).getTime();
                 const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
-                return (previous - current) / 60000;
+                return (current - previous) / 60000;
               })
             }]}
             options={opt4}
