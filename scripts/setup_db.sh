@@ -2,8 +2,14 @@
 sudo apt install -y mysql-server
 
 sudo sed -i 's/bind-address.*/bind-address = 127.0.0.1/' /etc/mysql/mysql.conf.d/mysqld.cnf
-sudo systemctl restart mysql
-sudo systemctl enable mysql
+# Check if systemd is running, otherwise use service command
+if ps -p 1 -o comm= | grep -q systemd; then
+    sudo systemctl start mysql
+    sudo systemctl enable mysql
+else
+    sudo service mysql start
+fi
+
 
 if [ -f ../.env ]; then
     export $(grep -v '^#' ../.env | xargs)
