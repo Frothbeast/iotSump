@@ -88,7 +88,7 @@ cd "$TARGET_DIR" && sudo chmod +x scripts/setup.sh && sudo chmod +x scripts/setu
 echo
 echo
 echo "----------------------------------------------------------"
-echo "create .env files in server and client using .env.example"
+echo "create .env files in root folder using .env.example"
 echo "then go to $TARGET_DIR/scripts/ and run ./setup.sh"
 
 

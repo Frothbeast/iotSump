@@ -15,7 +15,7 @@ import urllib3
 cwd = os.getcwd()
 print(f"INFO: Current Working Directory: {cwd}", file=sys.stderr)
 sys.stderr.flush()
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 lastRunTime = None
 
 # New global variables to track state for packet comparison
@@ -29,7 +29,7 @@ cl1pToken = os.getenv('CL1P_TOKEN')
 cl1pURL = os.getenv('CL1P_URL')
 
 db_config = {
-    'host': os.getenv('DB_HOST'),
+    'host': os.getenv('DB_HOST', '127.0.0.1'),
     'user': os.getenv('DB_USER'),
     'password': os.getenv('DB_PASS'),
     'database': os.getenv('DB_NAME'),

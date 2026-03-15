@@ -36,6 +36,7 @@ $PM2_BIN start sumpPumpWifiAPI.py --name "iot-api" --interpreter venv/bin/python
 
 $PM2_BIN delete "iot-frontend" || true
 $PM2_BIN start "npx serve -s /opt/IOTServer/client/build -l 3000" --name "iot-frontend"
+
 $PM2_BIN save
 cd ..
 

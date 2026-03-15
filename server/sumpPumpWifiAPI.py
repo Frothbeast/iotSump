@@ -11,12 +11,28 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 import requests
 import urllib3
-import subprocess
 import sys
 
 lastRunTime = None
-load_dotenv()
-app = Flask(__name__, static_folder='../client/build', static_url_path='/')
+
+# Corrected: Logic to find .env in the root whether running locally or in Docker
+# Looking one level up from /server/sumpPumpWifiAPI.py
+possible_env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+if os.path.exists(possible_env_path):
+    load_dotenv(possible_env_path)
+else:
+    # Fallback for local execution if already in root
+    load_dotenv('.env')
+
+# Corrected: Logic to find React build folder in both environments
+# Docker uses /app/client/build, Local development usually uses ../client/build
+docker_path = '/app/client/build'
+local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'client', 'build'))
+template_dir = docker_path if os.path.exists(docker_path) else local_path
+
+app = Flask(__name__,
+            static_folder=template_dir,
+            static_url_path='/')
 
 CORS(app)
 
@@ -26,14 +42,13 @@ cl1pURL = os.getenv('CL1P_URL')
 
 sys.stderr.write(f"DEBUG: Current location environment variable: {location}\n")
 sys.stderr.flush()
+
 db_config = {
-  'host': os.getenv('DB_HOST'),
+  'host': os.getenv('DB_HOST', '127.0.0.1'),
   'user': os.getenv('DB_USER'),
   'password': os.getenv('DB_PASS'),
   'database': os.getenv('DB_NAME')
 }
-
-cl1pURL = os.getenv('CL1P_URL')
 
 @app.route('/api/cl1p', methods=['POST'])
 def cl1p():
@@ -126,19 +141,24 @@ def cl1p():
 
 @app.route('/api/time', methods=['GET'])
 def get_time():
-    # %I is 12-hour clock, %M is minutes, %p is AM/PM
     now = datetime.now()
     server_time = now.strftime("%I:%M %p")
     return jsonify({"time": server_time})
 
 
+# Corrected: Updated serve route with fallback logic for React routing and absolute paths
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-  import os
-  if not os.path.exists(os.path.join(app.static_folder, 'index.html')):
-    return f"Error: index.html not found in {app.static_folder}", 404
-  return send_from_directory(app.static_folder, 'index.html')
+    import os
+    file_path = os.path.join(app.static_folder, path)
+    if path != "" and os.path.exists(file_path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        index_path = os.path.join(app.static_folder, 'index.html')
+        if not os.path.exists(index_path):
+            return f"Error: index.html not found in {app.static_folder}", 404
+        return send_from_directory(app.static_folder, 'index.html')
 
 
 @app.route('/api/sumpData', methods=['GET'])
@@ -216,10 +236,12 @@ def handle_data():
 @app.errorhandler(404)
 def not_found(e):
   import os
-  if not os.path.exists(os.path.join(app.static_folder, 'index.html')):
+  index_path = os.path.join(app.static_folder, 'index.html')
+  if not os.path.exists(index_path):
     return "Fallback failed: index.html missing", 404
   return send_from_directory(app.static_folder, 'index.html')
 
 
 if __name__ == '__main__':
+  # The host 0.0.0.0 is necessary for Docker to allow external access to the container
   app.run(host='0.0.0.0', port=5000, debug=True)

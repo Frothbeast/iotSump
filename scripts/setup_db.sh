@@ -2,13 +2,19 @@
 sudo apt install -y mysql-server
 
 sudo sed -i 's/bind-address.*/bind-address = 127.0.0.1/' /etc/mysql/mysql.conf.d/mysqld.cnf
-sudo systemctl restart mysql
-sudo systemctl enable mysql
-
-if [ -f ../server/.env ]; then
-    export $(grep -v '^#' ../server/.env | xargs)
+# Check if systemd is running, otherwise use service command
+if ps -p 1 -o comm= | grep -q systemd; then
+    sudo systemctl start mysql
+    sudo systemctl enable mysql
 else
-    echo ".env file not found in ../server directory. Please create one from ../server/.env.example"
+    sudo service mysql start
+fi
+
+
+if [ -f ../.env ]; then
+    export $(grep -v '^#' ../.env | xargs)
+else
+    echo ".env file not found in root directory. Please create one from .env.example"
     exit 1
 fi
 
