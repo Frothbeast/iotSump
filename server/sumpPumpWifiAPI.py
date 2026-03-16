@@ -32,9 +32,9 @@ cl1pURL = os.getenv('CL1P_URL')
 
 db_config = {
     'host': os.getenv('DB_HOST', 'db'),
-    'user': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASS'),
-    'database': os.getenv('DB_NAME')
+    'user': os.getenv('SUMP_DB_USER'),
+    'password': os.getenv('SUMP_DB_PASS'),
+    'database': os.getenv('DB_NAME', 'iot_db')
 }
 
 def get_db_connection():
