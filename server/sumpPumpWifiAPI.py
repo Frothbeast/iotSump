@@ -147,4 +147,5 @@ def serve(path):
 
 if __name__ == '__main__':
     bootstrap_db()
-    app.run(host='0.0.0.0', port=5001)
+    port_env = int(os.getenv('API_PORT', 5000))
+    app.run(host='0.0.0.0', port=port_env)
