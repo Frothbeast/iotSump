@@ -1,4 +1,3 @@
-// [2025-11-17] Always include all the code I write in the first place, and comment out my code that you change and insert your new correction.
 const StatsLib = {
   avg: (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(0) : 0,
   max: (arr) => arr.length ? Math.max(...arr) : 0,
@@ -8,7 +7,6 @@ const StatsLib = {
 export const calculateColumnStats = (sumpRecords) => {
   if (!sumpRecords?.length) return null;
 
-  // [Correction]: Mapping flat columns directly
   const Hadcs = sumpRecords.map(r => parseFloat(r.Hadc)).filter(v => !isNaN(v));
   const Ladcs = sumpRecords.map(r => parseFloat(r.Ladc)).filter(v => !isNaN(v));
   const timeOns = sumpRecords.map(r => parseFloat(r.timeOn)).filter(v => !isNaN(v));
@@ -18,15 +16,35 @@ export const calculateColumnStats = (sumpRecords) => {
 
   const lastRecord = sumpRecords[0];
   const dateObj = new Date(lastRecord.timestamp);
-  
-  return {
+
+
+  const diffs = datetime.slice(1).map((v, i) => new Date(datetime[i]).getTime() - new Date(v).getTime());
+  const parts = datetime[0].split(" ");
+  const lastDate = parts[0];
+const lastTime = new Date(`1970-01-01T${parts[1]}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+  const lastRecord = sumpRecords[0]?.payload;
+  const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
+  const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
+  const lastHoursOn = parseFloat(lastRecord?.hoursOn) || 0;
+  const period = Math.round((lastTimeOn + lastTimeOff)/60);
+
+
+
+
+   return {
     Hadc: { avg: StatsLib.avg(Hadcs), max: StatsLib.max(Hadcs), min: StatsLib.min(Hadcs) },
     Ladc: { avg: StatsLib.avg(Ladcs), max: StatsLib.max(Ladcs), min: StatsLib.min(Ladcs) },
-    timeOn: { avg: StatsLib.avg(timeOns) },
-    timeOff: { avg: StatsLib.avg(timeOffs) },
-    hoursOn: { avg: StatsLib.avg(hoursOns), max: StatsLib.max(hoursOns) },
-    duty: { avg: StatsLib.avg(duties) },
-    lastTime: dateObj.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }),
-    lastDate: dateObj.toLocaleDateString()
+    timeOn: { avg: StatsLib.avg(timeOns), max: StatsLib.max(timeOns), min: StatsLib.min(timeOns) },
+    timeOff: { avg: StatsLib.avg(timeOffs), max: StatsLib.max(timeOffs), min: StatsLib.min(timeOffs) },
+    hoursOn: lastHoursOn,
+    period: period,
+    duty: { avg: StatsLib.avg(duties), max: StatsLib.max(duties), min: StatsLib.min(duties) },
+    datetime: {
+      avg: formatMsToTime(StatsLib.avg(diffs)),
+      max: formatMsToTime(StatsLib.max(diffs)),
+      min: formatMsToTime(StatsLib.min(diffs))
+    },
+    lastDate: lastDate,
+    lastTime: lastTime
   };
 };
