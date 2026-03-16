@@ -9,6 +9,7 @@ from flask_cors import CORS
 import requests
 import urllib3
 import sys
+import time
 
 lastRunTime = None
 
@@ -30,16 +31,29 @@ cl1pToken = os.getenv('CL1P_TOKEN')
 cl1pURL = os.getenv('CL1P_URL')
 
 db_config = {
-    'host': os.getenv('DB_HOST', '127.0.0.1'),
+    'host': os.getenv('DB_HOST', 'db'),
     'user': os.getenv('DB_USER'),
     'password': os.getenv('DB_PASS'),
     'database': os.getenv('DB_NAME')
 }
 
+def get_db_connection():
+    retries = 5
+    while retries > 0:
+        try:
+            conn = mysql.connector.connect(**db_config)
+            return conn
+        except mysql.connector.Error as err:
+            sys.stderr.write(f"Connection failed, retrying in 5s... {err}\n")
+            retries -= 1
+            time.sleep(5)
+    return None
 
 def bootstrap_db():
     try:
-        conn = mysql.connector.connect(**db_config)
+        conn = get_db_connection()
+        if not conn:
+             raise Exception("Could not connect to database after retries")
         cursor = conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS sumpData (
@@ -73,7 +87,8 @@ def cl1p():
 
     try:
         if location == "home":
-            conn_db = mysql.connector.connect(**db_config)
+            conn_db = get_db_connection()
+            if not conn_db: return jsonify({"error": "DB Connection Timeout"}), 500
             cursor_fetch = conn_db.cursor(dictionary=True)
             query = "SELECT * FROM sumpData WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
             cursor_fetch.execute(query)
@@ -96,7 +111,9 @@ def cl1p():
             if response.status_code == 200:
                 cl1p_payloads = json.loads(response.text)
                 if isinstance(cl1p_payloads, list):
-                    conn = mysql.connector.connect(**db_config)
+
+                    conn = get_db_connection()
+                    if not conn: return jsonify({"error": "DB Connection Timeout"}), 500
                     cursor = conn.cursor()
                     for item in cl1p_payloads:
                         ts = item.get('timestamp')
@@ -121,7 +138,9 @@ def cl1p():
 def get_sump_data():
     try:
         hours = request.args.get('hours', default=24, type=int)
-        conn = mysql.connector.connect(**db_config)
+
+        conn = get_db_connection()
+        if not conn: return jsonify({"error": "DB Connection Timeout"}), 500
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM sumpData WHERE timestamp >= NOW() - INTERVAL %s HOUR ORDER BY id DESC", (hours,))
         rows = cursor.fetchall()
