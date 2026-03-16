@@ -70,7 +70,6 @@ def cl1p():
         if location == "home":
             conn_db = mysql.connector.connect(**db_config)
             cursor_fetch = conn_db.cursor(dictionary=True)
-            # [Correction]: Querying flat columns and converting the whole list to one long JSON string for cl1p
             query = "SELECT * FROM sumpData WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
             cursor_fetch.execute(query)
             rows = cursor_fetch.fetchall()
@@ -80,7 +79,6 @@ def cl1p():
                 row['hoursOn'] = float(row['hoursOn'])
                 row['duty'] = float(row['duty'])
 
-            # cl1p requires a long string
             long_string_payload = json.dumps(rows)
             response = requests.post(cl1pURL, data=long_string_payload, headers=headers, verify=False)
 
@@ -91,7 +89,6 @@ def cl1p():
         elif location == "work":
             response = requests.get(cl1pURL, headers=headers, verify=False)
             if response.status_code == 200:
-                # [Correction]: Parsing the long string back into objects
                 cl1p_payloads = json.loads(response.text)
                 if isinstance(cl1p_payloads, list):
                     conn = mysql.connector.connect(**db_config)

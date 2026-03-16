@@ -1,6 +1,4 @@
-# [2025-11-17] Always include all the code I write in the first place, and comment out my code that you change and insert your new correction.
 import os
-import sys
 from dotenv import load_dotenv
 import socket
 import mysql.connector
@@ -19,7 +17,6 @@ db_config = {
     'password': os.getenv('DB_PASS'),
     'database': os.getenv('DB_NAME'),
 }
-
 
 def start_collector():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -70,16 +67,15 @@ def start_collector():
                         duty = round(100 * int(payload_dict["timeOn"]) / (
                                     int(payload_dict["timeOn"]) + int(payload_dict["timeOff"]) + 1), 2)
 
-                        # [Correction]: Insert into flat columns including hoursOn
                         conn_db = mysql.connector.connect(**db_config)
                         cursor = conn_db.cursor()
                         query = """
-                            INSERT INTO sumpData (Hadc, Ladc, timeOn, timeOff, hoursOn, duty) 
-                            VALUES (%s, %s, %s, %s, %s, %s)
+                            INSERT INTO sumpData (Hadc, Ladc, timeOn, timeOff, hoursOn) 
+                            VALUES (%s, %s, %s, %s, %s)
                         """
                         cursor.execute(query, (payload_dict["Hadc"], payload_dict["Ladc"],
                                                payload_dict["timeOn"], payload_dict["timeOff"],
-                                               payload_dict["hoursOn"], duty))
+                                               payload_dict["hoursOn"]))
                         conn_db.commit()
                         cursor.close()
                         conn_db.close()
