@@ -1,9 +1,4 @@
-from flask import Flask, jsonify
-
-#
-# This file is the API handling web requests and errors
-#
-
+# [2025-11-17] Always include all the code I write in the first place, and comment out my code that you change and insert your new correction.
 from flask import Flask, request, jsonify, send_from_directory
 import mysql.connector
 import json
@@ -17,233 +12,137 @@ import sys
 
 lastRunTime = None
 
-# Corrected: Logic to find .env in the root whether running locally or in Docker
-# Looking one level up from /server/sumpPumpWifiAPI.py
 possible_env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 if os.path.exists(possible_env_path):
     load_dotenv(possible_env_path)
 else:
-    # Fallback for local execution if already in root
     load_dotenv('.env')
 
-# Corrected: Logic to find React build folder in both environments
-# Docker uses /app/client/build, Local development usually uses ../client/build
 docker_path = '/app/client/build'
 local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'client', 'build'))
 template_dir = docker_path if os.path.exists(docker_path) else local_path
 
-app = Flask(__name__,
-            static_folder=template_dir,
-            static_url_path='/')
-
+app = Flask(__name__, static_folder=template_dir, static_url_path='/')
 CORS(app)
 
 location = os.getenv('LOCATION')
 cl1pToken = os.getenv('CL1P_TOKEN')
 cl1pURL = os.getenv('CL1P_URL')
 
-sys.stderr.write(f"DEBUG: Current location environment variable: {location}\n")
-sys.stderr.flush()
-
 db_config = {
-  'host': os.getenv('DB_HOST', '127.0.0.1'),
-  'user': os.getenv('DB_USER'),
-  'password': os.getenv('DB_PASS'),
-  'database': os.getenv('DB_NAME')
+    'host': os.getenv('DB_HOST', '127.0.0.1'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASS'),
+    'database': os.getenv('DB_NAME')
 }
+
+
+def bootstrap_db():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS sumpData (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                Hadc INT,
+                Ladc INT,
+                timeOn INT,
+                timeOff INT,
+                hoursOn DECIMAL(10,4),
+                duty DECIMAL(5,2)
+            )
+        """)
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        sys.stderr.write(f"Bootstrap error: {e}\n")
+
 
 @app.route('/api/cl1p', methods=['POST'])
 def cl1p():
-    global location
-    global cl1pURL
-    global cl1pToken
-
-    url = cl1pURL
+    global location, cl1pURL, cl1pToken
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     headers = {"Content-Type": "text/plain", "cl1papitoken": cl1pToken}
 
     try:
         if location == "home":
-            try:
-                response = requests.get(url, headers=headers, verify=False)
-            except Exception as e:
-                sys.stderr.write(f"Download error: {e}\n")
-            sys.stderr.write("Successfully removed cl1p.\n")
-            try:
-                conn_db = mysql.connector.connect(**db_config)
-                cursor_fetch = conn_db.cursor(dictionary=True)
-                week_query = f"""
-                    SELECT payload 
-                    FROM {db_config['database']}.sumpData 
-                    WHERE payload->>'$.datetime' >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-                """
-                cursor_fetch.execute(week_query)
-                rows = cursor_fetch.fetchall()
-                raw_text_payload = "[]"
-                if rows:
-                    weekly_data_list = [
-                        json.loads(row['payload']) if isinstance(row['payload'], str) else row['payload']
-                        for row in rows]
-                    raw_text_payload = json.dumps(weekly_data_list)
-                    sys.stderr.write(f"DEBUG: Sending to cl1p: {raw_text_payload[:500]}...\n")
-                    sys.stderr.flush()
-                response = requests.post(url, data=raw_text_payload, headers=headers, verify=False)
-                if 200 <= response.status_code < 300:
-                    sys.stderr.write(f"Successfully pushed {len(weekly_data_list)} rows to cl1p.\n")
-                else:
-                    sys.stderr.write(f"Push failed: {response.status_code} - {response.text}\n")
-            except Exception as e:
-                sys.stderr.write(f"Upload error: {e}\n")
-            sys.stderr.write("DEBUG: Button was clicked, code is running\n")
-            sys.stderr.flush()
+            conn_db = mysql.connector.connect(**db_config)
+            cursor_fetch = conn_db.cursor(dictionary=True)
+            # [Correction]: Querying flat columns and converting the whole list to one long JSON string for cl1p
+            query = "SELECT * FROM sumpData WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+            cursor_fetch.execute(query)
+            rows = cursor_fetch.fetchall()
+
+            for row in rows:
+                row['timestamp'] = str(row['timestamp'])
+                row['hoursOn'] = float(row['hoursOn'])
+                row['duty'] = float(row['duty'])
+
+            # cl1p requires a long string
+            long_string_payload = json.dumps(rows)
+            response = requests.post(cl1pURL, data=long_string_payload, headers=headers, verify=False)
+
+            cursor_fetch.close()
+            conn_db.close()
             return '', 204
+
         elif location == "work":
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-            url = cl1pURL
-            cl1pToken = os.getenv('CL1P_TOKEN')
-            headers = {"cl1papitoken": cl1pToken}
-            try:
-                response = requests.get(url, headers=headers, verify=False)
-                if response.status_code == 200:
-                    raw_text = response.text
-                    sys.stderr.write(f"DEBUG: Received from cl1p: {raw_text[:500]}...\n")
-                    try:
-                        cl1p_payloads = json.loads(raw_text)
-                        if isinstance(cl1p_payloads, list) and len(cl1p_payloads) > 0:
-                            conn = mysql.connector.connect(**db_config)
-                            cursor = conn.cursor()
-                            new_count = 0
-                            for item in cl1p_payloads:
-                                dt_val = item.get('datetime')
-                                if dt_val:
-                                    check_query = f"SELECT COUNT(*) FROM {db_config['database']}.sumpData WHERE payload->>'$.datetime' = %s"
-                                    cursor.execute(check_query, (dt_val,))
-                                    if cursor.fetchone()[0] == 0:
-                                        insert_query = f"INSERT INTO {db_config['database']}.sumpData (payload) VALUES (%s)"
-                                        cursor.execute(insert_query, (json.dumps(item),))
-                                        new_count += 1
-                            conn.commit()
-                            sys.stderr.write(f"DEBUG: Successfully imported {new_count} new rows\n")
-                    except json.JSONDecodeError as e:
-                        sys.stderr.write(f"ERROR: JSON Decode Failed: {str(e)}\n")
-                        sys.stderr.write(f"OFFENDING CONTENT: {raw_text[:200]}\n")
-                    finally:
-                        if 'cursor' in locals(): cursor.close()
-                        if 'conn' in locals(): conn.close()
-                else:
-                    sys.stderr.write(f"DEBUG: Failed to retrieve data. Status: {response.status_code}\n")
-                    sys.stderr.flush()
-                return '', 204
-            except Exception as e:
-                sys.stderr.write(f"Download error: {e}\n")
+            response = requests.get(cl1pURL, headers=headers, verify=False)
+            if response.status_code == 200:
+                # [Correction]: Parsing the long string back into objects
+                cl1p_payloads = json.loads(response.text)
+                if isinstance(cl1p_payloads, list):
+                    conn = mysql.connector.connect(**db_config)
+                    cursor = conn.cursor()
+                    for item in cl1p_payloads:
+                        ts = item.get('timestamp')
+                        cursor.execute("SELECT COUNT(*) FROM sumpData WHERE timestamp = %s", (ts,))
+                        if cursor.fetchone()[0] == 0:
+                            query = """
+                                INSERT INTO sumpData (timestamp, Hadc, Ladc, timeOn, timeOff, hoursOn, duty)
+                                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                            """
+                            cursor.execute(query, (ts, item.get('Hadc'), item.get('Ladc'),
+                                                   item.get('timeOn'), item.get('timeOff'),
+                                                   item.get('hoursOn'), item.get('duty')))
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+            return '', 204
     except Exception as e:
-        sys.stderr.write(f"DEBUG: Action failed: {e}\n")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/sumpData', methods=['GET'])
+def get_sump_data():
+    try:
+        hours = request.args.get('hours', default=24, type=int)
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM sumpData WHERE timestamp >= NOW() - INTERVAL %s HOUR ORDER BY id DESC", (hours,))
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(rows)
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/time', methods=['GET'])
 def get_time():
-    now = datetime.now()
-    server_time = now.strftime("%I:%M %p")
-    return jsonify({"time": server_time})
+    return jsonify({"time": datetime.now().strftime("%I:%M %p")})
 
 
-# Corrected: Updated serve route with fallback logic for React routing and absolute paths
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
-    import os
-    file_path = os.path.join(app.static_folder, path)
-    if path != "" and os.path.exists(file_path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
-    else:
-        index_path = os.path.join(app.static_folder, 'index.html')
-        if not os.path.exists(index_path):
-            return f"Error: index.html not found in {app.static_folder}", 404
-        return send_from_directory(app.static_folder, 'index.html')
-
-
-@app.route('/api/sumpData', methods=['GET'])
-def get_sump_data():
-  global location
-  try:
-    hours = request.args.get('hours', default=24, type=int)
-
-    threshold = datetime.now() - timedelta(hours=hours)
-    threshold_str = threshold.strftime('%Y-%m-%d %H:%M:%S')
-
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
-
-    query = """
-            SELECT id, payload FROM sumpData 
-            WHERE payload->>'$.datetime' >= %s
-            ORDER BY id DESC
-        """
-
-    cursor.execute(query, (threshold_str,))
-    rows = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    for row in rows:
-      if isinstance(row['payload'], str):
-        row['payload'] = json.loads(row['payload'])
-
-    return jsonify(rows)
-  except Exception as e:
-    sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
-    sys.stderr.flush()
-    return jsonify({"error": str(e)}), 500
-
-
-@app.route('/api/data', methods=['GET', 'POST'])
-def handle_data():
-  if request.method == 'POST':
-    try:
-      data = request.get_json()
-      conn = mysql.connector.connect(**db_config)
-      cursor = conn.cursor()
-      query = "INSERT INTO sumpData (payload) VALUES (%s)"
-      cursor.execute(query, (json.dumps(data),))
-      conn.commit()
-      cursor.close()
-      conn.close()
-
-      return jsonify({"status": "success"}), 200
-    except Exception as e:
-      sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
-      sys.stderr.flush()
-      return jsonify({"status": "error", "message": str(e)}), 500
-
-  try:
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, payload FROM sumpData ORDER BY id DESC LIMIT 200")
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    for row in rows:
-      if isinstance(row['payload'], str):
-        row['payload'] = json.loads(row['payload'])
-    return jsonify(rows)
-  except Exception as e:
-    sys.stderr.write(f"DEBUG: An error occurred: {e}\n")
-    sys.stderr.flush()
-    return jsonify({"error": str(e)}), 500
-
-
-@app.errorhandler(404)
-def not_found(e):
-  import os
-  index_path = os.path.join(app.static_folder, 'index.html')
-  if not os.path.exists(index_path):
-    return "Fallback failed: index.html missing", 404
-  return send_from_directory(app.static_folder, 'index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
 
 if __name__ == '__main__':
-  # The host 0.0.0.0 is necessary for Docker to allow external access to the container
-  app.run(host='0.0.0.0', port=5000, debug=True)
+    bootstrap_db()
+    app.run(host='0.0.0.0', port=5001)
