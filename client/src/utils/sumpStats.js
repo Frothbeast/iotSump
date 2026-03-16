@@ -17,19 +17,14 @@ export const calculateColumnStats = (sumpRecords) => {
   const lastRecord = sumpRecords[0];
   const dateObj = new Date(lastRecord.timestamp);
 
-
   const diffs = datetime.slice(1).map((v, i) => new Date(datetime[i]).getTime() - new Date(v).getTime());
   const parts = datetime[0].split(" ");
   const lastDate = parts[0];
-const lastTime = new Date(`1970-01-01T${parts[1]}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-  const lastRecord = sumpRecords[0]?.payload;
+  const lastTime = new Date(`1970-01-01T${parts[1]}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
   const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
   const lastHoursOn = parseFloat(lastRecord?.hoursOn) || 0;
   const period = Math.round((lastTimeOn + lastTimeOff)/60);
-
-
-
 
    return {
     Hadc: { avg: StatsLib.avg(Hadcs), max: StatsLib.max(Hadcs), min: StatsLib.min(Hadcs) },

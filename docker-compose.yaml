@@ -21,7 +21,7 @@ services:
     restart: always
     ports:
       - "${API_PORT}:${API_PORT}"
-    env_file: .env
+    env_file: ../iotSump/.env
     depends_on:
       - database
     networks:

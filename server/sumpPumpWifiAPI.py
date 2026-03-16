@@ -59,6 +59,11 @@ def bootstrap_db():
     except Exception as e:
         sys.stderr.write(f"Bootstrap error: {e}\n")
 
+@app.after_request
+def apply_caching(response):
+    response.headers["X-Frame-Options"] = "ALLOWALL"
+    return response
+
 
 @app.route('/api/cl1p', methods=['POST'])
 def cl1p():
