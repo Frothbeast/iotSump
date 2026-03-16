@@ -13,12 +13,6 @@ import time
 
 lastRunTime = None
 
-possible_env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
-if os.path.exists(possible_env_path):
-    load_dotenv(possible_env_path)
-else:
-    load_dotenv('.env')
-
 docker_path = '/app/client/build'
 local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'client', 'build'))
 template_dir = docker_path if os.path.exists(docker_path) else local_path
@@ -30,11 +24,19 @@ location = os.getenv('LOCATION')
 cl1pToken = os.getenv('CL1P_TOKEN')
 cl1pURL = os.getenv('CL1P_URL')
 
+SUMP_USER = os.getenv('SUMP_DB_USER')
+SUMP_PASS = os.getenv('SUMP_DB_PASS')
+DB_HOST = os.getenv('DB_HOST', 'db')
+DB_NAME = os.getenv('DB_NAME', 'iot_db')
+
+if not SUMP_USER or not SUMP_PASS:
+    sys.stderr.write(f"ERROR: Environment Variables Missing! User: {SUMP_USER}, Pass: {'SET' if SUMP_PASS else 'MISSING'}\n")
+
 db_config = {
-    'host': os.getenv('DB_HOST', 'db'),
-    'user': os.getenv('SUMP_DB_USER'),
-    'password': os.getenv('SUMP_DB_PASS'),
-    'database': os.getenv('DB_NAME', 'iot_db')
+    'host': DB_HOST,
+    'user': SUMP_USER,
+    'password': SUMP_PASS,
+    'database': DB_NAME
 }
 
 def get_db_connection():
