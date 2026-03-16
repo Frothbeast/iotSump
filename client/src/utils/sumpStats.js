@@ -3,7 +3,12 @@ const StatsLib = {
   max: (arr) => arr.length ? Math.max(...arr) : 0,
   min: (arr) => arr.length ? Math.min(...arr) : 0,
 };
-
+const formatMsToTime = (ms) => {
+  const h = Math.floor(ms / 3600000).toString().padStart(2, '0');
+  const m = Math.floor((ms % 3600000) / 60000).toString().padStart(2, '0');
+  const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
+  return `${h}:${m}:${s}`;
+};
 export const calculateColumnStats = (sumpRecords) => {
   if (!sumpRecords?.length) return null;
 
@@ -17,8 +22,8 @@ export const calculateColumnStats = (sumpRecords) => {
   const lastRecord = sumpRecords[0];
   const dateObj = new Date(lastRecord.timestamp);
 
-  const diffs = datetime.slice(1).map((v, i) => new Date(datetime[i]).getTime() - new Date(v).getTime());
-  const parts = datetime[0].split(" ");
+  const diffs = dateObj.slice(1).map((v, i) => new Date(dateObj[i]).getTime() - new Date(v).getTime());
+  const parts = dateObj[0].split(" ");
   const lastDate = parts[0];
   const lastTime = new Date(`1970-01-01T${parts[1]}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
