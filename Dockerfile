@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/ ./
 RUN mkdir -p /app/client/build
-COPY --from=build-step /app/client/build app/client/build
+COPY --from=build-step /app/client/build /app/client/build
 
 EXPOSE 5000
 CMD ["python", "sumpPumpWifiAPI.py"]
