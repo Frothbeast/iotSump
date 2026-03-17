@@ -19,7 +19,7 @@ function App() {
 
   const cl1pClick = async () => {
     try{
-      const response = await fetch('${SUMP_API}/api/cl1p', {method: 'POST',});
+      const response = await fetch(`${SUMP_API}/api/cl1p`, {method: 'POST', });
       if (response.status === 204) {
           console.log("Action acknowledged by server.");
           // Optional: Show a temporary "Success" toast/message on the UI
@@ -34,7 +34,7 @@ function App() {
   };
 
   const updateTime = () => {
-    fetch('${SUMP_API}/api/time')
+    fetch(`${SUMP_API}/api/time`)
       .then(res => res.json())
       .then(data => setServerTime(data.time))
       .catch(err => console.error("Time fetch failed", err));
