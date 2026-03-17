@@ -1,18 +1,11 @@
-// [2025-11-17] Always include all the code I write in the first place, and comment out my code that you change and insert your new correction.
-
 const StatsLib = {
   avg: (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length) : 0,
   max: (arr) => arr.length ? Math.max(...arr) : 0,
   min: (arr) => arr.length ? Math.min(...arr) : 0,
 };
 
-const formatMsToTime = (ms) => {
-  const totalMs = Math.abs(Number(ms) || 0);
-  // New Correction: Use String() constructor to guarantee the variable is a string before padStart
-  const h = String(Math.floor(totalMs / 3600000)).padStart(2, '0');
-  const m = String(Math.floor((totalMs % 3600000) / 60000)).padStart(2, '0');
-  const s = String(Math.floor((totalMs % 60000) / 1000)).padStart(2, '0');
-  return `${h}:${m}:${s}`;
+const formatToMinutes = (ms) => {
+  return Math.round(Math.abs(Number(ms) || 0) / 60000);
 };
 
 export const calculateColumnStats = (sumpRecords) => {
@@ -34,10 +27,8 @@ export const calculateColumnStats = (sumpRecords) => {
   const dateObjs = sumpRecords.map(r => new Date(r.timestamp).getTime()).filter(t => !isNaN(t));
   const diffs = dateObjs.length > 1 ? dateObjs.slice(0, -1).map((v, i) => v - dateObjs[i + 1]) : [];
 
-  // New Correction: Explicitly cast the timestamp to a String to prevent s.slice/s.split errors
   const tsString = String(lastRecord?.timestamp || "");
   const parts = tsString.split(/[ T]/);
-  
   const lastTime = parts[1] || "";
 
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
