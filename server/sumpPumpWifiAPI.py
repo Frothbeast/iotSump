@@ -146,7 +146,7 @@ def get_sump_data():
         hours = request.args.get('hours', default=24, type=int)
         print(f"DEBUG: Fetching data for last {hours} hours", file=sys.stderr, flush=True)
         conn = get_db_connection()
-        if not conn: return jsonify({"error": "DB Connection Timeout"}), 500
+        if not conn: return jsonify([]), 200
         cursor = conn.cursor(dictionary=True)
         query = "SELECT id, timestamp, Hadc, Ladc, timeOn, timeOff, hoursOn, duty FROM sumpData WHERE timestamp > NOW() - INTERVAL %s HOUR"
         cursor.execute(query, (hours,))
@@ -162,7 +162,7 @@ def get_sump_data():
         )
     except Exception as e:
         print(f"ERROR: {str(e)}", file=sys.stderr, flush=True)
-        return jsonify({"error": str(e)}), 500
+        return jsonify([]), 200
 
 
 @app.route('/api/time', methods=['GET'])

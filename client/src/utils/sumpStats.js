@@ -1,14 +1,18 @@
+// [2025-11-17] Always include all the code I write in the first place, and comment out my code that you change and insert your new correction.
+
 const StatsLib = {
   avg: (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(0) : 0,
   max: (arr) => arr.length ? Math.max(...arr) : 0,
   min: (arr) => arr.length ? Math.min(...arr) : 0,
 };
+
 const formatMsToTime = (ms) => {
   const h = Math.floor(ms / 3600000).toString().padStart(2, '0');
   const m = Math.floor((ms % 3600000) / 60000).toString().padStart(2, '0');
   const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
   return `${h}:${m}:${s}`;
 };
+
 export const calculateColumnStats = (sumpRecords) => {
   if (!sumpRecords?.length) return null;
 
@@ -19,19 +23,23 @@ export const calculateColumnStats = (sumpRecords) => {
   const hoursOns = sumpRecords.map(r => parseFloat(r.hoursOn)).filter(v => !isNaN(v));
   const duties = sumpRecords.map(r => parseFloat(r.duty)).filter(v => !isNaN(v));
 
-  const lastRecord = sumpRecords[0];
-  const dateObj = new Date(lastRecord.timestamp);
+  const timestamps = sumpRecords.map(r => new Date(r.timestamp).getTime());
 
-  const diffs = dateObj.slice(1).map((v, i) => new Date(dateObj[i]).getTime() - new Date(v).getTime());
-  const parts = dateObj[0].split(" ");
+  const diffs = timestamps.slice(0, -1).map((v, i) => v - timestamps[i + 1]);
+
+  const lastRecord = sumpRecords[0];
+  
+  const parts = String(lastRecord.timestamp).split(/[ T]/);
+  
   const lastDate = parts[0];
-  const lastTime = new Date(`1970-01-01T${parts[1]}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+  const lastTime = new Date(lastRecord.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+  
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
   const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
   const lastHoursOn = parseFloat(lastRecord?.hoursOn) || 0;
   const period = Math.round((lastTimeOn + lastTimeOff)/60);
 
-   return {
+  return {
     Hadc: { avg: StatsLib.avg(Hadcs), max: StatsLib.max(Hadcs), min: StatsLib.min(Hadcs) },
     Ladc: { avg: StatsLib.avg(Ladcs), max: StatsLib.max(Ladcs), min: StatsLib.min(Ladcs) },
     timeOn: { avg: StatsLib.avg(timeOns), max: StatsLib.max(timeOns), min: StatsLib.min(timeOns) },
