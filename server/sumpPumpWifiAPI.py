@@ -25,8 +25,8 @@ cl1pURL = os.getenv('CL1P_URL')
 
 SUMP_USER = os.getenv('SUMP_DB_USER')
 SUMP_PASS = os.getenv('SUMP_DB_PASS')
-DB_HOST = os.getenv('DB_HOST', 'db')
-DB_NAME = os.getenv('DB_NAME', 'iot_db')
+DB_HOST = os.getenv('DB_HOST')
+DB_NAME = os.getenv('DB_NAME')
 
 if not SUMP_USER or not SUMP_PASS:
     sys.stderr.write(f"ERROR: Environment Variables Missing! User: {SUMP_USER}, Pass: {'SET' if SUMP_PASS else 'MISSING'}\n")
@@ -180,5 +180,5 @@ def serve(path):
 
 if __name__ == '__main__':
     bootstrap_db()
-    port_env = int(os.getenv('API_PORT', 5000))
+    port_env = int(os.getenv('API_PORT'))
     app.run(host='0.0.0.0', port=port_env)
