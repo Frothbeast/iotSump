@@ -25,10 +25,11 @@ export const calculateColumnStats = (sumpRecords) => {
 
   const lastRecord = sumpRecords[0];
   const dateObjs = sumpRecords.map(r => new Date(r.timestamp).getTime()).filter(t => !isNaN(t));
-  const diffs = dateObjs.length > 1 ? dateObjs.slice(0, -1).map((v, i) => v - dateObjs[i + 1]) : [];
+  const timestampDiffs = dateObjs.length > 1 ? dateObjs.slice(0, -1).map((v, i) => Math.round((v - dateObjs[i + 1]) / 60000)) : [];
 
   const tsString = String(lastRecord?.timestamp || "");
   const parts = tsString.split(/[ T]/);
+  const lastDate = parts[0] || "";
   const lastTime = parts[1] || "";
 
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
@@ -43,12 +44,9 @@ export const calculateColumnStats = (sumpRecords) => {
     timeOff: { avg: StatsLib.avg(timeOffs).toFixed(0), max: StatsLib.max(timeOffs), min: StatsLib.min(timeOffs) },
     hoursOn: lastHoursOn,
     period: period,
+    datetime: { avg: StatsLib.avg(timestampDiffs).toFixed(0), max: StatsLib.max(timestampDiffs), min: StatsLib.min(timestampDiffs) },
     duty: { avg: StatsLib.avg(duties).toFixed(0), max: StatsLib.max(duties), min: StatsLib.min(duties) },
-    datetime: {
-      avg: formatMsToTime(StatsLib.avg(diffs)),
-      max: formatMsToTime(StatsLib.max(diffs)),
-      min: formatMsToTime(StatsLib.min(diffs))
-    },
-    lastTime: lastTime
+    lastTime: lastTime,
+    lastDate: lastDate
   };
 };
