@@ -25,16 +25,15 @@ export const calculateColumnStats = (sumpRecords) => {
   const duties = sumpRecords.map(r => parseFloat(r.duty)).filter(v => !isNaN(v));
 
   const lastRecord = sumpRecords[0];
-  const dateObjs = sumpRecords.map(r => new Date(r.timestamp).getTime()).filter(t => !isNaN(t));
-  const diffs = dateObjs.length > 1 ? dateObjs.slice(0, -1).map((v, i) => v - dateObjs[i + 1]) : [];
 
+  // Logic: Use .getTime() to turn the string into a Number for calculation
+  const timestamps = sumpRecords.map(r => new Date(r.timestamp).getTime()).filter(t => !isNaN(t));
+  const diffs = timestamps.length > 1 ? timestamps.slice(0, -1).map((v, i) => v - timestamps[i + 1]) : [];
+
+  // Logic: Explicitly cast to String before splitting to ensure no 's.slice' or 's.split' errors
   const tsString = String(lastRecord?.timestamp || "");
   const parts = tsString.split(/[ T]/);
   
-  const lastDate = parts[0] || "";
-  
-  // const lastTime = lastRecord?.timestamp ? new Date(lastRecord.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) : "";
-  // New Correction: Directly using the time portion of the split string to fulfill the literal requirement
   const lastTime = parts[1] || "";
 
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
@@ -55,7 +54,6 @@ export const calculateColumnStats = (sumpRecords) => {
       max: formatMsToTime(StatsLib.max(diffs)),
       min: formatMsToTime(StatsLib.min(diffs))
     },
-    lastDate: lastDate,
     lastTime: lastTime
   };
 };
