@@ -2,20 +2,19 @@
 
 const StatsLib = {
   // avg: (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(0) : 0,
-  // New Correction: Return a raw number to prevent math failures in downstream functions
+  // New Correction: Return a raw number to prevent downstream formatting crashes
   avg: (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length) : 0,
   max: (arr) => arr.length ? Math.max(...arr) : 0,
   min: (arr) => arr.length ? Math.min(...arr) : 0,
 };
 
 const formatMsToTime = (ms) => {
-  // New Correction: Force conversion to Number and handle 0 or NaN cases
-  const totalMs = Math.abs(Number(ms)) || 0;
+  // New Correction: Ensure ms is a valid, finite number before proceeding
+  const totalMs = (typeof ms === 'number' && isFinite(ms)) ? ms : 0;
   
-  // New Correction: Ensure toString() is called before .padStart() to avoid "slice is not a function" errors
-  const h = Math.floor(totalMs / 3600000).toString().padStart(2, '0');
-  const m = Math.floor((totalMs % 3600000) / 60000).toString().padStart(2, '0');
-  const s = Math.floor((totalMs % 60000) / 1000).toString().padStart(2, '0');
+  const h = String(Math.floor(totalMs / 3600000)).padStart(2, '0');
+  const m = String(Math.floor((totalMs % 3600000) / 60000)).padStart(2, '0');
+  const s = String(Math.floor((totalMs % 60000) / 1000)).padStart(2, '0');
   return `${h}:${m}:${s}`;
 };
 
@@ -31,19 +30,20 @@ export const calculateColumnStats = (sumpRecords) => {
 
   const lastRecord = sumpRecords[0];
   
-  // New Correction: Ensure we have an array of numeric timestamps
+  // New Correction: dateObjs must be an array of numeric timestamps for .slice(1) to be valid
   const dateObjs = sumpRecords.map(r => new Date(r.timestamp).getTime()).filter(t => !isNaN(t));
 
   // const diffs = dateObj.slice(1).map((v, i) => new Date(dateObj[i]).getTime() - new Date(v).getTime());
-  // New Correction: Map through timestamps to find deltas between consecutive states
+  // New Correction: Calculating deltas between consecutive pump events (State B - State A)
   const diffs = dateObjs.slice(0, -1).map((v, i) => v - dateObjs[i + 1]);
 
-  // New Correction: Split the timestamp string safely
-  const parts = String(lastRecord.timestamp || "").split(/[ T]/);
-  const lastDate = parts[0] || "";
+  // New Correction: Ensure timestamp split doesn't fail if timestamp is undefined
+  const parts = String(lastRecord?.timestamp || "").split(/[ T]/);
+  const lastDate = parts[0] || "N/A";
   
-  const lastTime = lastRecord.timestamp ? 
-    new Date(lastRecord.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) : "";
+  // New Correction: Safe Date conversion for the display time
+  const lastTime = lastRecord?.timestamp ? 
+    new Date(lastRecord.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) : "N/A";
 
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
   const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
