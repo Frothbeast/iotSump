@@ -1,4 +1,3 @@
-# [2025-11-17] Always include all the code I write in the first place, and comment out my code that you change and insert your new correction.
 from flask import Flask, request, jsonify, send_from_directory
 import mysql.connector
 import json
@@ -38,6 +37,11 @@ db_config = {
     'password': SUMP_PASS,
     'database': DB_NAME
 }
+
+def datetime_handler(x):
+    if isinstance(x, datetime):
+        return x.isoformat()
+    raise TypeError("Unknown type")
 
 def get_db_connection():
     retries = 5
@@ -145,12 +149,17 @@ def get_sump_data():
         if not conn: return jsonify({"error": "DB Connection Timeout"}), 500
         cursor = conn.cursor(dictionary=True)
         query = "SELECT id, timestamp, Hadc, Ladc, timeOn, timeOff, hoursOn, duty FROM sumpData WHERE timestamp > NOW() - INTERVAL %s HOUR"
-
         cursor.execute(query, (hours,))
         rows = cursor.fetchall()
+
         cursor.close()
         conn.close()
-        return jsonify(rows)
+
+        return app.response_class(
+            response=json.dumps(rows, default=datetime_handler),
+            status=200,
+            mimetype='application/json'
+        )
     except Exception as e:
         print(f"ERROR: {str(e)}", file=sys.stderr, flush=True)
         return jsonify({"error": str(e)}), 500
