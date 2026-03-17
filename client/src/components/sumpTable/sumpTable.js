@@ -46,18 +46,19 @@ const SumpTable = ({ sumpRecords = [], columnStats }) => {
                     </tr>
                 </thead>
                 <tbody className="sumpTableBody">
-                    <tr className="sumpTablePlaceholder"></tr>
-                    {Array.isArray(sumpRecords) && sumpRecords.map((record) => (
-                        <tr key={record.id} className="sumpTableRow">
-                            <td className="sumpTableCell1"></td>
-                            <td className="sumpTableCell2">{record.payload?.datetime ? record.payload.datetime.split(' ')[1] : "N/a"}</td>
-                            <td className="sumpTableCell">{record.payload?.Hadc ?? "N/a"}</td>
-			                <td className="sumpTableCell">{record.payload?.Ladc ?? "N/a"}</td>
-                            <td className="sumpTableCell">{record.payload?.timeOn ?? "N/a"}</td>
-                            <td className="sumpTableCell">{record.payload?.timeOff ?? "N/a"}</td>
-                            <td className="sumpTableCell">{record.payload?.duty ?? "N/a"}</td>
-                        </tr>
-                    ))}
+                <tr className="sumpTablePlaceholder"></tr>
+                {Array.isArray(sumpRecords) && sumpRecords.map((record) => (
+                    <tr key={record.id} className="sumpTableRow">
+                        <td className="sumpTableCell1"></td>
+                        {/* New Correction: Accessing properties directly from 'record' instead of 'record.payload' */}
+                        <td className="sumpTableCell2">{record.timestamp ? record.timestamp.split(/[ T]/)[1] : "N/a"}</td>
+                        <td className="sumpTableCell">{record.Hadc ?? "N/a"}</td>
+                        <td className="sumpTableCell">{record.Ladc ?? "N/a"}</td>
+                        <td className="sumpTableCell">{record.timeOn ?? "N/a"}</td>
+                        <td className="sumpTableCell">{record.timeOff ?? "N/a"}</td>
+                        <td className="sumpTableCell">{record.duty ?? "N/a"}</td>
+                    </tr>
+                ))}
                 </tbody>
 	    </table>
 	</div>
