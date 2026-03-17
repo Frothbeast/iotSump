@@ -1,20 +1,13 @@
 import { useState, useEffect } from 'react';
-
-export function useServerData() {
-    const [counter, setCounter] = useState(0);
-    const [totalTime, setTotalTime] = useState(0);
-    const [clickCounter, setClickCounter] = useState(0);
+export function useSumpData(hours) {
     const [sumpRecords, setSumpRecords] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    const [startTime] = useState(() => Date.now());
-
+    const SUMP_API = process.env.REACT_APP_SUMP_API_URL || "http://localhost:3002";
     useEffect(() => {
-        const interval = setInterval(() => {
-            setCounter((prev) => prev + 1);
-            setTotalTime(Math.round((Date.now() - startTime) / 1000));
+        let interval;
 
-            fetch('/api/data')
+        const fetchData = () => {
+            fetch(`${SUMP_API}/api/sumpData?hours=${hours}`)
                 .then(res => res.json())
                 .then(data => {
                     if (Array.isArray(data)) {
@@ -26,15 +19,27 @@ export function useServerData() {
                     console.error("Fetch error:", err);
                     setIsLoading(false);
                 });
-        }, 1000);
+        };
 
-        return () => clearInterval(interval);
-    }, [startTime]);
+        const setupInterval = () => {
+            if (interval) clearInterval(interval);
+            const pollRate = document.visibilityState === 'visible' ? 1000 : 60000;
+            interval = setInterval(fetchData, pollRate);
+        };
+        fetchData();
+        setupInterval();
 
-    const resetTimer = () => {
-        setCounter(0);
-        setClickCounter(prev => prev + 1);
-    };
+        const handleVisibilityChange = () => {
+            setupInterval();
+        };
 
-    return { counter, totalTime, clickCounter, sumpRecords, isLoading, resetTimer };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [hours], SUMP_API);
+
+    return { sumpRecords, isLoading };
 }
