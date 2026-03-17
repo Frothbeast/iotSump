@@ -1,3 +1,5 @@
+// [2025-11-17] Always include all the code I write in the first place, and comment out my code that you change and insert your new correction.
+
 const StatsLib = {
   avg: (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length) : 0,
   max: (arr) => arr.length ? Math.max(...arr) : 0,
@@ -28,9 +30,12 @@ export const calculateColumnStats = (sumpRecords) => {
 
   const tsString = String(lastRecord?.timestamp || "");
   const parts = tsString.split(/[ T]/);
+  
   const lastDate = parts[0] || "";
-  const lastTime = lastRecord?.timestamp ? 
-    new Date(lastRecord.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) : "";
+  
+  // const lastTime = lastRecord?.timestamp ? new Date(lastRecord.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) : "";
+  // New Correction: Directly using the time portion of the split string to fulfill the literal requirement
+  const lastTime = parts[1] || "";
 
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
   const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
