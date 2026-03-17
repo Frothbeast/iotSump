@@ -23,7 +23,12 @@ export const calculateColumnStats = (sumpRecords) => {
   const timeOns = sumpRecords.map(r => parseFloat(r.timeOn)).filter(v => !isNaN(v));
   const timeOffs = sumpRecords.map(r => parseFloat(r.timeOff)).filter(v => !isNaN(v));
   const hoursOns = sumpRecords.map(r => parseFloat(r.hoursOn)).filter(v => !isNaN(v));
-  const duties = sumpRecords.map(r => parseFloat(r.duty)).filter(v => !isNaN(v));
+  const duties = sumpRecords.map(r => {
+    const on = parseFloat(r.timeOn);
+    const off = parseFloat(r.timeOff);
+    if (isNaN(on) || isNaN(off) || (on + off) === 0) return null;
+    return Math.round((on / (on + off)) * 100);
+  }).filter(v => v !== null);
 
   const lastRecord = sumpRecords[0];
   const dateObjs = sumpRecords.map(r => new Date(r.timestamp).getTime()).filter(t => !isNaN(t));
