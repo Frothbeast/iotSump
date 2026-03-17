@@ -1,17 +1,11 @@
-// [2025-11-17] Always include all the code I write in the first place, and comment out my code that you change and insert your new correction.
-
 const StatsLib = {
-  // avg: (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(0) : 0,
-  // New Correction: Return a raw number to prevent downstream formatting crashes
   avg: (arr) => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length) : 0,
   max: (arr) => arr.length ? Math.max(...arr) : 0,
   min: (arr) => arr.length ? Math.min(...arr) : 0,
 };
 
 const formatMsToTime = (ms) => {
-  // New Correction: Ensure ms is a valid, finite number before proceeding
-  const totalMs = (typeof ms === 'number' && isFinite(ms)) ? ms : 0;
-  
+  const totalMs = Math.abs(Number(ms) || 0);
   const h = String(Math.floor(totalMs / 3600000)).padStart(2, '0');
   const m = String(Math.floor((totalMs % 3600000) / 60000)).padStart(2, '0');
   const s = String(Math.floor((totalMs % 60000) / 1000)).padStart(2, '0');
@@ -19,7 +13,7 @@ const formatMsToTime = (ms) => {
 };
 
 export const calculateColumnStats = (sumpRecords) => {
-  if (!sumpRecords?.length) return null;
+  if (!Array.isArray(sumpRecords) || sumpRecords.length === 0) return null;
 
   const Hadcs = sumpRecords.map(r => parseFloat(r.Hadc)).filter(v => !isNaN(v));
   const Ladcs = sumpRecords.map(r => parseFloat(r.Ladc)).filter(v => !isNaN(v));
@@ -29,21 +23,14 @@ export const calculateColumnStats = (sumpRecords) => {
   const duties = sumpRecords.map(r => parseFloat(r.duty)).filter(v => !isNaN(v));
 
   const lastRecord = sumpRecords[0];
-  
-  // New Correction: dateObjs must be an array of numeric timestamps for .slice(1) to be valid
   const dateObjs = sumpRecords.map(r => new Date(r.timestamp).getTime()).filter(t => !isNaN(t));
+  const diffs = dateObjs.length > 1 ? dateObjs.slice(0, -1).map((v, i) => v - dateObjs[i + 1]) : [];
 
-  // const diffs = dateObj.slice(1).map((v, i) => new Date(dateObj[i]).getTime() - new Date(v).getTime());
-  // New Correction: Calculating deltas between consecutive pump events (State B - State A)
-  const diffs = dateObjs.slice(0, -1).map((v, i) => v - dateObjs[i + 1]);
-
-  // New Correction: Ensure timestamp split doesn't fail if timestamp is undefined
-  const parts = String(lastRecord?.timestamp || "").split(/[ T]/);
-  const lastDate = parts[0] || "N/A";
-  
-  // New Correction: Safe Date conversion for the display time
+  const tsString = String(lastRecord?.timestamp || "");
+  const parts = tsString.split(/[ T]/);
+  const lastDate = parts[0] || "";
   const lastTime = lastRecord?.timestamp ? 
-    new Date(lastRecord.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) : "N/A";
+    new Date(lastRecord.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) : "";
 
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
   const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
