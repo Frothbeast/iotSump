@@ -18,7 +18,7 @@ template_dir = docker_path if os.path.exists(docker_path) else local_path
 
 app = Flask(__name__, static_folder=template_dir, static_url_path='/')
 CORS(app)
-
+load_dotenv()
 location = os.getenv('LOCATION')
 cl1pToken = os.getenv('CL1P_TOKEN')
 cl1pURL = os.getenv('CL1P_URL')
