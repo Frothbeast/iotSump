@@ -4,6 +4,10 @@ WORKDIR /app/client
 COPY client/package*.json ./
 RUN npm install
 COPY client/ ./
+
+ARG REACT_APP_SUMP_API_URL
+ENV REACT_APP_SUMP_API_URL=$REACT_APP_SUMP_API_URL
+
 RUN npm run build
 
 # STEP 2: Setup the Python Flask API
