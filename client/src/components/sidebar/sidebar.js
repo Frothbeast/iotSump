@@ -43,7 +43,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const opt3 = useMemo(() => createConfig(timeUnit), [timeUnit]);
   const opt4 = useMemo(() => createConfig(timeUnit), [timeUnit]);
 
-  const labels = sumpRecords.map(r => r.payload?.datetime);
+  const labels = sumpRecords.map(r => r.datetime);
 
   return (
     <div className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -52,8 +52,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           <SumpChart
             labels={labels}
             datasets={[
-              { label: "Low ADC", color: "lightblue", data: sumpRecords.map(r => r.payload?.Ladc) },
-              { label: "High ADC", color: "lightgreen", data: sumpRecords.map(r => r.payload?.Hadc) }
+              { label: "Low ADC", color: "lightblue", data: sumpRecords.map(r => r.Ladc) },
+              { label: "High ADC", color: "lightgreen", data: sumpRecords.map(r => r.Hadc) }
             ]}
             options={opt1}
           />
@@ -62,8 +62,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           <SumpChart
             labels={labels}
             datasets={[
-              { label: "On Time", color: "pink", data: sumpRecords.map(r => r.payload?.timeOn) },
-              { label: "Off Time", color: "red", data: sumpRecords.map(r => r.payload?.timeOff) }
+              { label: "On Time", color: "pink", data: sumpRecords.map(r => r.timeOn) },
+              { label: "Off Time", color: "red", data: sumpRecords.map(r => r.timeOff) }
             ]}
             options={opt2}
           />
@@ -71,7 +71,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         <div className="chartContainer">
           <SumpChart
             labels={labels}
-            datasets={[{ label: "Duty Cycle", color: "lavender", data: sumpRecords.map(r => r.payload?.duty) }]}
+            datasets={[{ label: "Duty Cycle", color: "lavender", data: sumpRecords.map(r => r.duty) }]}
             options={opt3}
           />
         </div>
@@ -81,8 +81,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             datasets={[{
               label: "Interval", color: "cyan",
               data: sumpRecords.slice(1).map((r, i) => {
-                const current = new Date(r.payload?.datetime).getTime();
-                const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
+                const current = new Date(r.datetime).getTime();
+                const previous = new Date(sumpRecords[i].datetime).getTime();
                 return (previous - current) / 60000;
               })
             }]}

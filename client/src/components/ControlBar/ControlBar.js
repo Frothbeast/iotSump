@@ -75,12 +75,12 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
               {
                 label: "Ladc",
                 color: "lightblue",
-                data: sumpRecords.map(r => r.payload?.Ladc),
+                data: sumpRecords.map(r => r.Ladc),
               },
               {
                 label: "Hadc",
                 color: "lightgreen",
-                data: sumpRecords.map(r => r.payload?.Hadc),
+                data: sumpRecords.map(r => r.Hadc),
               }
             ]}
             options={getOptions(400, 1024)}
@@ -94,12 +94,12 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
               {
                 label: "timeOn",
                 color: "pink",
-                data: sumpRecords.map(r => r.payload?.timeOn),
+                data: sumpRecords.map(r => r.timeOn),
               },
               {
                 label: "timeOff",
                 color: "yellow",
-                data: sumpRecords.map(r => r.payload?.timeOff),
+                data: sumpRecords.map(r => r.timeOff),
               }
             ]}
             options={getOptions(0, 3500)}
@@ -113,7 +113,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
               {
                 label: "duty",
                 color: "lavender",
-                data: sumpRecords.map(r => r.payload?.duty)
+                data: sumpRecords.map(r => r.duty)
               }
             ]}
             options={getOptions(-1, 99)}
@@ -126,8 +126,8 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
             datasets={[{
               label: "period",color: "cyan",
               data: sumpRecords.slice(1).map((r, i) => {
-                const current = new Date(r.payload?.datetime).getTime();
-                const previous = new Date(sumpRecords[i].payload?.datetime).getTime();
+                const current = new Date(r.datetime).getTime();
+                const previous = new Date(sumpRecords[i].datetime).getTime();
                 return ( previous -current) / 60000;
               })}
             ]}
