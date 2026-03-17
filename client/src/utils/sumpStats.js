@@ -7,7 +7,10 @@ const StatsLib = {
 };
 
 const formatMsToTime = (ms) => {
-  const totalMs = Math.abs(Number(ms) || 0);
+  // New Correction: Ensure ms is a finite number. If it is NaN, the math below will crash padStart.
+  const totalMs = isFinite(ms) ? Math.abs(ms) : 0;
+  
+  // New Correction: Use String() and separate the calls to ensure padStart only executes on a valid string.
   const h = String(Math.floor(totalMs / 3600000)).padStart(2, '0');
   const m = String(Math.floor((totalMs % 3600000) / 60000)).padStart(2, '0');
   const s = String(Math.floor((totalMs % 60000) / 1000)).padStart(2, '0');
@@ -26,14 +29,13 @@ export const calculateColumnStats = (sumpRecords) => {
 
   const lastRecord = sumpRecords[0];
 
-  // Logic: Use .getTime() to turn the string into a Number for calculation
+  // Original Goal: Remember last state to find difference
+  // New Correction: We use a numeric array of timestamps to safely calculate differences without using .slice on a Date object.
   const timestamps = sumpRecords.map(r => new Date(r.timestamp).getTime()).filter(t => !isNaN(t));
   const diffs = timestamps.length > 1 ? timestamps.slice(0, -1).map((v, i) => v - timestamps[i + 1]) : [];
 
-  // Logic: Explicitly cast to String before splitting to ensure no 's.slice' or 's.split' errors
   const tsString = String(lastRecord?.timestamp || "");
   const parts = tsString.split(/[ T]/);
-  
   const lastTime = parts[1] || "";
 
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
