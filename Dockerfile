@@ -4,20 +4,17 @@ RUN apt-get update && apt-get install -y nodejs npm build-essential && rm -rf /v
 
 WORKDIR /app
 
-COPY client/package*.json ./client/
-RUN cd client && npm install
-
-COPY client/ ./client/
-ARG REACT_APP_API_URL
-ENV REACT_APP_API_URL=${REACT_APP_API_URL}
-RUN cd client && npm run build
-
 COPY server/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/ .
 
-RUN mkdir -p /app/client/build && cp -r /app/client/build/* /app/client/build/ || true
+COPY client/package*.json ./client/
+RUN cd client && npm install
+COPY client/ ./client/
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=${REACT_APP_API_URL}
+RUN cd client && npm run build
 
 ARG API_PORT=5000
 ARG COLLECTOR_PORT=1884
