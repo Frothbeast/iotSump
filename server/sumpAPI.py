@@ -12,11 +12,9 @@ import time
 
 lastRunTime = None
 
-docker_path = 'app/client/build'
-local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'client', 'build'))
-template_dir = docker_path if os.path.exists(docker_path) else local_path
+static_dir = os.environ.get('STATIC_FOLDER', '/app/client/build')
 
-app = Flask(__name__, static_folder=template_dir, static_url_path='/')
+app = Flask(__name__, static_folder=static_dir, static_url_path='/')
 
 print(f"DEBUG: Static folder is set to: {app.static_folder}")
 print(f"DEBUG: Does path exist? {os.path.exists(app.static_folder)}")
