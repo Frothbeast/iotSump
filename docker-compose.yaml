@@ -45,4 +45,4 @@ networks:
     driver: bridge
 
 volumes:
-  sum_db_data:
+  sump_db_data:
