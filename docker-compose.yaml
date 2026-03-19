@@ -15,7 +15,10 @@ services:
       - sump-network
 
   sump-service:
-    build: .
+    build: 
+      context: .
+      args:
+        - REACT_APP_SUMP_API_URL=${REACT_APP_SUMP_API_URL}
     environment:
       - TZ=America/Toronto
     restart: always

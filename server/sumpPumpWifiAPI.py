@@ -12,21 +12,21 @@ import time
 
 lastRunTime = None
 
-docker_path = '/app/client/build'
+docker_path = 'app/client/build'
 local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'client', 'build'))
 template_dir = docker_path if os.path.exists(docker_path) else local_path
 
 app = Flask(__name__, static_folder=template_dir, static_url_path='/')
 CORS(app)
-
+load_dotenv()
 location = os.getenv('LOCATION')
 cl1pToken = os.getenv('CL1P_TOKEN')
 cl1pURL = os.getenv('CL1P_URL')
 
 SUMP_USER = os.getenv('SUMP_DB_USER')
 SUMP_PASS = os.getenv('SUMP_DB_PASS')
-DB_HOST = os.getenv('DB_HOST', 'db')
-DB_NAME = os.getenv('DB_NAME', 'iot_db')
+DB_HOST = os.getenv('DB_HOST')
+DB_NAME = os.getenv('DB_NAME')
 
 if not SUMP_USER or not SUMP_PASS:
     sys.stderr.write(f"ERROR: Environment Variables Missing! User: {SUMP_USER}, Pass: {'SET' if SUMP_PASS else 'MISSING'}\n")
@@ -180,5 +180,5 @@ def serve(path):
 
 if __name__ == '__main__':
     bootstrap_db()
-    port_env = int(os.getenv('API_PORT', 5000))
+    port_env = int(os.getenv('API_PORT'))
     app.run(host='0.0.0.0', port=port_env)

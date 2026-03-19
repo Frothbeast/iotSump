@@ -12,16 +12,16 @@ last_payload_data = None
 last_packet_timestamp = None
 
 db_config = {
-    'host': os.getenv('DB_HOST', 'db'),
+    'host': os.getenv('DB_HOST'),
     'user': os.getenv('SUMP_DB_USER'),
     'password': os.getenv('SUMP_DB_PASS'),
-    'database': os.getenv('DB_NAME', 'iot_db')
+    'database': os.getenv('DB_NAME')
 }
 
 def start_collector():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind((os.getenv('BIND_HOST', '0.0.0.0'), int(os.getenv('COLLECTOR_PORT', 1883))))
+    server_socket.bind((os.getenv('BIND_HOST'), int(os.getenv('COLLECTOR_PORT'))))
     server_socket.listen(5)
     global last_payload_data, last_packet_timestamp
 

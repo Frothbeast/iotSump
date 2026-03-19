@@ -50,7 +50,6 @@ const SumpTable = ({ sumpRecords = [], columnStats }) => {
                 {Array.isArray(sumpRecords) && sumpRecords.map((record) => (
                     <tr key={record.id} className="sumpTableRow">
                         <td className="sumpTableCell1"></td>
-                        {/* New Correction: Accessing properties directly from 'record' instead of 'record.payload' */}
                         <td className="sumpTableCell2">{record.timestamp ? record.timestamp.split(/[ T]/)[1] : "N/a"}</td>
                         <td className="sumpTableCell">{record.Hadc ?? "N/a"}</td>
                         <td className="sumpTableCell">{record.Ladc ?? "N/a"}</td>
