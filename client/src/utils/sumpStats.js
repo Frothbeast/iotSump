@@ -38,7 +38,7 @@ export const calculateColumnStats = (sumpRecords) => {
     timeOff: { avg: StatsLib.avg(timeOffs).toFixed(0), max: StatsLib.max(timeOffs), min: StatsLib.min(timeOffs) },
     hoursOn: lastHoursOn,
     period: period,
-    duty: { avg: StatsLib.avg(duties).toFixed(0), max: StatsLib.max(duties), min: StatsLib.min(duties) },
+    duty: { avg: StatsLib.avg(duties).toFixed(1), max: StatsLib.max(duties), min: StatsLib.min(duties) },
     lastTime: lastTime,
     lastDate: lastDate
   };
