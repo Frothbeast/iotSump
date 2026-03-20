@@ -22,7 +22,7 @@
   min-width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
-  table-layout: auto;
+  table-layout: fixed;
   background-color: var(--menu-background);
   color: var(--menu-colour);
 }
@@ -100,21 +100,26 @@
   display: table-cell;
 }
 
-.sumpTable .sumpTableCell:first-child {    
-  width: 5vw;       
+.sumpTable .sumpTableCell:first-child,
+.sumpTableHeaderCell2Row1, 
+[class^="sumpTableHeaderCell1Row"] {    
+  width: 16.66%; /* Since you have 6 columns, use percentage or a consistent vw */
   padding: 1px;            
-  text-align: left;       
+  text-align: center; /* Center to match other columns */
 }
 
 .sumpTable td:not(:first-child) {
   width: auto;
 }
 
-.sumpTableCell1, [class^="sumpTableHeaderCell1Row"] {
+.sumpTableCell1, 
+.sumpTableCell2,
+[class^="sumpTableHeaderCell1Row"],
+[class^="sumpTableHeaderCell2Row"] {
   font-size: var(--sumpTable__header-smallFont);
-  width: 5vw; 
-  
+  width: 16.66%; /* (100% / 6 columns) ensures they are all identical */
 }
+
  .sumpTableHeaderCell2Row1, .sumpTableHeaderCellRow1 {
   font-size: var(--sumpTable__header-smallFont);
  }
