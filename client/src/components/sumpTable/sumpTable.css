@@ -29,7 +29,7 @@
 @container sumpContainer (max-width:844px) {
   .sumpTable {
     --sumpTable__header-font: 5cqw;
-    --sumpTable__data-font: 4cqw;
+    --sumpTable__data-font: 6cqw;
     --sumpTable__header-smallFont: 3cqw;
     --sumpTable__header-height: 16vw;
     --sumpTable__headerRow-height: 6vw; 
@@ -116,9 +116,7 @@
 .sumpTableCell2{
   font-size: var(--sumpTable__data-font);
 }
-.sumpTableCell2, [class^="sumpTableHeaderCell2Row"] {
-  width: 5vw;
-}
+
 .sumpTablePlaceholder{
   height: var(--sumpTable__header-height);
 }
