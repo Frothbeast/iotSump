@@ -100,9 +100,8 @@
   display: table-cell;
 }
 
-.sumpTable .sumpTableCell:first-child {
-  width: min-content;    
-  min-width: unset;       
+.sumpTable .sumpTableCell:first-child {    
+  width: 5vw;       
   padding: 1px;            
   text-align: left;       
 }
@@ -113,7 +112,7 @@
 
 .sumpTableCell1, [class^="sumpTableHeaderCell1Row"] {
   font-size: var(--sumpTable__header-smallFont);
-  width: min-content;
+  width: 5vw; 
   
 }
  .sumpTableHeaderCell2Row1, .sumpTableHeaderCellRow1 {
