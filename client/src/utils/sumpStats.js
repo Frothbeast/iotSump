@@ -16,7 +16,7 @@ export const calculateColumnStats = (sumpRecords) => {
     const on = parseFloat(r.timeOn);
     const off = parseFloat(r.timeOff);
     if (isNaN(on) || isNaN(off) || (on + off) === 0) return null;
-    return Math.round((on / (on + off)) * 100);
+    return ((on / (on + off)) * 100).toFixed(1);
   }).filter(v => v !== null);
 
   const lastRecord = sumpRecords[0];
