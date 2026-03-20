@@ -65,13 +65,12 @@ def bootstrap_db():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS sumpData (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 Hadc INT,
                 Ladc INT,
                 timeOn INT,
                 timeOff INT,
-                hoursOn DECIMAL(10,4),
-                duty DECIMAL(5,2)
+                hoursOn INT,
             )
         """)
         conn.commit()
@@ -97,14 +96,17 @@ def cl1p():
             conn_db = get_db_connection()
             if not conn_db: return jsonify({"error": "DB Connection Timeout"}), 500
             cursor_fetch = conn_db.cursor(dictionary=True)
-            query = "SELECT * FROM sumpData WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+            query = "SELECT * FROM sumpData WHERE datetime >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
             cursor_fetch.execute(query)
             rows = cursor_fetch.fetchall()
 
             for row in rows:
-                row['timestamp'] = str(row['timestamp'])
-                row['hoursOn'] = float(row['hoursOn'])
-                row['duty'] = float(row['duty'])
+                row['datetime'] = str(row['datetime'])
+                row['hoursOn'] = str(row['hoursOn'])
+                row['Hadc'] = str(row['Hadc'])
+                row['Ladc'] = str(row['Ladc'])
+                row['timeOn'] = str(row['timeOn'])
+                row['timeOff'] = str(row['timeOff'])
 
             long_string_payload = json.dumps(rows)
             response = requests.post(cl1pURL, data=long_string_payload, headers=headers, verify=False)
@@ -123,16 +125,16 @@ def cl1p():
                     if not conn: return jsonify({"error": "DB Connection Timeout"}), 500
                     cursor = conn.cursor()
                     for item in cl1p_payloads:
-                        ts = item.get('timestamp')
-                        cursor.execute("SELECT COUNT(*) FROM sumpData WHERE timestamp = %s", (ts,))
+                        ts = item.get('datetime')
+                        cursor.execute("SELECT COUNT(*) FROM sumpData WHERE datetime = %s", (ts,))
                         if cursor.fetchone()[0] == 0:
                             query = """
-                                INSERT INTO sumpData (timestamp, Hadc, Ladc, timeOn, timeOff, hoursOn, duty)
-                                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                                INSERT INTO sumpData (datetime, Hadc, Ladc, timeOn, timeOff, hoursOn)
+                                VALUES (%s, %s, %s, %s, %s, %s)
                             """
                             cursor.execute(query, (ts, item.get('Hadc'), item.get('Ladc'),
                                                    item.get('timeOn'), item.get('timeOff'),
-                                                   item.get('hoursOn'), item.get('duty')))
+                                                   item.get('hoursOn')))
                     conn.commit()
                     cursor.close()
                     conn.close()
@@ -149,7 +151,7 @@ def get_sump_data():
         conn = get_db_connection()
         if not conn: return jsonify([]), 200
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT id, timestamp, Hadc, Ladc, timeOn, timeOff, hoursOn, duty FROM sumpData WHERE timestamp > NOW() - INTERVAL %s HOUR"
+        query = "SELECT id, datetime, Hadc, Ladc, timeOn, timeOff, hoursOn FROM sumpData WHERE datetime > NOW() - INTERVAL %s HOUR"
         cursor.execute(query, (hours,))
         rows = cursor.fetchall()
 

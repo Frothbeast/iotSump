@@ -55,7 +55,13 @@ const SumpTable = ({ sumpRecords = [], columnStats }) => {
                         <td className="sumpTableCell">{record.Ladc ?? "N/a"}</td>
                         <td className="sumpTableCell">{record.timeOn ?? "N/a"}</td>
                         <td className="sumpTableCell">{record.timeOff ?? "N/a"}</td>
-                        <td className="sumpTableCell">{record.duty ?? "N/a"}</td>
+                        <td className="sumpTableCell">
+                            {/* record.duty ?? "N/a" */}
+                            {(Number(record.timeOn) + Number(record.timeOff)) > 0 
+                                ? (Number(record.timeOn) / (Number(record.timeOn) + Number(record.timeOff))).toFixed(2) 
+                                : "0.00"
+                            }
+                        </td>
                     </tr>
                 ))}
                 </tbody>

@@ -64,18 +64,15 @@ def start_collector():
                         last_payload_data = payload_dict.copy()
                         last_packet_timestamp = now
 
-                        duty = round(100 * int(payload_dict["timeOn"]) / (
-                                    int(payload_dict["timeOn"]) + int(payload_dict["timeOff"]) + 1), 2)
-
                         conn_db = mysql.connector.connect(**db_config)
                         cursor = conn_db.cursor()
                         query = """
-                            INSERT INTO sumpData (Hadc, Ladc, timeOn, timeOff, hoursOn) 
-                            VALUES (%s, %s, %s, %s, %s)
+                            INSERT INTO sumpData (Hadc, Ladc, timeOn, timeOff, hoursOn, datetime) 
+                            VALUES (%s, %s, %s, %s, %s, %s)
                         """
                         cursor.execute(query, (payload_dict["Hadc"], payload_dict["Ladc"],
                                                payload_dict["timeOn"], payload_dict["timeOff"],
-                                               payload_dict["hoursOn"]))
+                                               payload_dict["hoursOn"]), now)
                         conn_db.commit()
                         cursor.close()
                         conn_db.close()

@@ -71,7 +71,12 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         <div className="chartContainer">
           <SumpChart
             labels={labels}
-            datasets={[{ label: "Duty Cycle", color: "lavender", data: sumpRecords.map(r => r.duty) }]}
+            datasets={[{ label: "Duty Cycle", color: "lavender",
+              data: sumpRecords.map(r => {
+              const totalTime = Number(r.timeOn) + Number(r.timeOff);
+              return totalTime > 0 ? (Number(r.timeOn) / totalTime) : 0;
+              })
+            }]}
             options={opt3}
           />
         </div>

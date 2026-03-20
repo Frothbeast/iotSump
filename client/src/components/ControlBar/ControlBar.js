@@ -113,7 +113,10 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
               {
                 label: "duty",
                 color: "lavender",
-                data: sumpRecords.map(r => r.duty)
+                data: sumpRecords.map(r => {
+                  const totalTime = Number(r.timeOn) + Number(r.timeOff);
+                  return totalTime > 0 ? (Number(r.timeOn) / totalTime) : 0;
+                })
               }
             ]}
             options={getOptions(-1, 99)}
