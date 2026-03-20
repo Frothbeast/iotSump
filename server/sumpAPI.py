@@ -18,6 +18,7 @@ app = Flask(__name__, static_folder=static_dir, static_url_path='/')
 
 print(f"DEBUG: Static folder is set to: {app.static_folder}")
 print(f"DEBUG: Does path exist? {os.path.exists(app.static_folder)}")
+
 CORS(app)
 load_dotenv()
 location = os.getenv('LOCATION')
@@ -57,27 +58,32 @@ def get_db_connection():
     return None
 
 def bootstrap_db():
-    try:
-        conn = get_db_connection()
-        if not conn:
-             raise Exception("Could not connect to database after retries")
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS sumpData (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                Hadc INT,
-                Ladc INT,
-                timeOn INT,
-                timeOff INT,
-                hoursOn INT,
-            )
-        """)
-        conn.commit()
-        cursor.close()
-        conn.close()
-    except Exception as e:
-        sys.stderr.write(f"Bootstrap error: {e}\n")
+    retries = 5
+    while retries > 0:
+        try:
+            conn = get_db_connection()
+            if not conn:
+                 raise Exception("Could not connect to database after retries")
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS sumpData (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    Hadc INT,
+                    Ladc INT,
+                    timeOn INT,
+                    timeOff INT,
+                    hoursOn INT,
+                )
+            """)
+            conn.commit()
+            cursor.close()
+            conn.close()
+            print("Database bootstrapped successfully.")
+        except Exception as e:
+            print(f"Database not ready, retrying... ({retries} left)")
+            retries -= 1
+            time.sleep(5)
 
 @app.after_request
 def apply_caching(response):
@@ -113,7 +119,7 @@ def cl1p():
 
             cursor_fetch.close()
             conn_db.close()
-            return '', 204
+            return jsonify({"status": "pushed to cl1p", "count": len(rows)}), 200
 
         elif location == "work":
             response = requests.get(cl1pURL, headers=headers, verify=False)
