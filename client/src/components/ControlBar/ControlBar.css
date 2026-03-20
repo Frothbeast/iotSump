@@ -5,7 +5,7 @@
   right: 0;
   z-index: 1000;
   height: var(--controlBar-height); 
-  background: rgba(44, 62, 80, 0.541);
+  background: rgba(44, 62, 80, 1);
   display: flex;
   flex-wrap: nowrap;
   flex-direction: row;
@@ -58,7 +58,8 @@
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* justify-content: center; */
+  justify-content: flex-start;
   font-size: 3cqw;
   width: 100%;
 }
@@ -115,24 +116,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  
-  font-size: 3cqw; 
+
+  font-size: 3cqw;
   font-weight: bold;
   color: rgba(255, 255, 255, 0.1);
-  z-index: 0; 
-  pointer-events: none; 
-  user-select: none; 
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
 }
 .label, .unit {
-  flex: 1; 
+  /* flex: 1; */
+  flex: 0 0 auto;
   white-space: nowrap;
   font-size: 2cqw;
 }
 .label {
   color: #888888;
   font-weight: bold;
-  text-align: right;
-  flex: 1;
+  /* text-align: right; */
+  /* flex: 1; */
+  text-align: left;
+  margin-right: 1cqw;
 }
 
 .unit {
@@ -148,4 +152,3 @@
   white-space: nowrap;
   padding: 0 2cqw;
 }
-

@@ -39,7 +39,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
       </div>
       <div className="centerSection">
         <div className="lastRun">
-          <span className="label">Last Run</span>
+          <span className="label">Last Run:</span>
           <span className="value">{columnStats?.lastTime ?? "N/a"} </span>
           <span className="unit">{columnStats?.lastDate ?? "N/a"} </span>
         </div>

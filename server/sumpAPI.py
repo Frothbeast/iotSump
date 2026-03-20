@@ -124,7 +124,11 @@ def cl1p():
         elif location == "work":
             response = requests.get(cl1pURL, headers=headers, verify=False)
             if response.status_code == 200:
-                cl1p_payloads = json.loads(response.text)
+                try:
+                    cl1p_payloads = json.loads(response.text)
+                except json.JSONDecodeError as e:
+                    print(f"DEBUG: Failed to parse JSON. Raw response: {response.text[:100]}")
+                    return jsonify({"error": "Invalid data format from cl1p", "details": str(e)}), 400
                 if isinstance(cl1p_payloads, list):
 
                     conn = get_db_connection()
@@ -157,7 +161,7 @@ def get_sump_data():
         conn = get_db_connection()
         if not conn: return jsonify([]), 200
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT id, datetime, Hadc, Ladc, timeOn, timeOff, hoursOn FROM sumpData WHERE datetime > NOW() - INTERVAL %s HOUR"
+        query = "SELECT id, datetime, Hadc, Ladc, timeOn, timeOff, hoursOn FROM sumpData WHERE datetime > NOW() - INTERVAL %s HOUR ORDER BY datetime DESC;"
         cursor.execute(query, (hours,))
         rows = cursor.fetchall()
 

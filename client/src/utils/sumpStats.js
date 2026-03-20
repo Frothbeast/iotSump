@@ -16,7 +16,7 @@ export const calculateColumnStats = (sumpRecords) => {
     const on = parseFloat(r.timeOn);
     const off = parseFloat(r.timeOff);
     if (isNaN(on) || isNaN(off) || (on + off) === 0) return null;
-    return Math.round((on / (on + off)) * 100);
+    return (on / (on + off)) * 100;
   }).filter(v => v !== null);
 
   const lastRecord = sumpRecords[0];
@@ -38,7 +38,7 @@ export const calculateColumnStats = (sumpRecords) => {
     timeOff: { avg: StatsLib.avg(timeOffs).toFixed(0), max: StatsLib.max(timeOffs), min: StatsLib.min(timeOffs) },
     hoursOn: lastHoursOn,
     period: period,
-    duty: { avg: StatsLib.avg(duties).toFixed(0), max: StatsLib.max(duties), min: StatsLib.min(duties) },
+    duty: { avg: StatsLib.avg(duties).toFixed(1), max: StatsLib.max(duties).toFixed(1), min: StatsLib.min(duties).toFixed(1) },
     lastTime: lastTime,
     lastDate: lastDate
   };
