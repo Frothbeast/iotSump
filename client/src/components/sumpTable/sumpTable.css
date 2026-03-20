@@ -100,20 +100,13 @@
   display: table-cell;
 }
 
-.sumpTable .sumpTableCell:first-child {
-  width: min-content;    
-  min-width: unset;       
-  padding: 1px;            
-  text-align: left;       
-}
-
 .sumpTable td:not(:first-child) {
   width: auto;
 }
 
 .sumpTableCell1, [class^="sumpTableHeaderCell1Row"] {
   font-size: var(--sumpTable__header-smallFont);
-  width: min-content;
+  text-align: right;  
   
 }
  .sumpTableHeaderCell2Row1, .sumpTableHeaderCellRow1 {
