@@ -100,12 +100,11 @@
   display: table-cell;
 }
 
-.sumpTable .sumpTableCell:first-child,
 .sumpTableHeaderCell2Row1, 
 [class^="sumpTableHeaderCell1Row"] {    
-  width: 16.66%; /* Since you have 6 columns, use percentage or a consistent vw */
+  width: 16.66% !important; 
   padding: 1px;            
-  text-align: center; /* Center to match other columns */
+  text-align: center; 
 }
 
 .sumpTable td:not(:first-child) {
@@ -127,8 +126,10 @@
 .sumpTableCell2{
   font-size: var(--sumpTable__data-font);
 }
-.sumpTableCell2, [class^="sumpTableHeaderCell2Row"] {
-  width: 5vw;
+.sumpTableCell2 {
+  font-size: var(--sumpTable__data-font);
+  width: 16.66%;
+  text-align: center;
 }
 .sumpTablePlaceholder{
   height: var(--sumpTable__header-height);
