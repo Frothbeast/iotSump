@@ -157,7 +157,7 @@ def get_sump_data():
         conn = get_db_connection()
         if not conn: return jsonify([]), 200
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT id, datetime, Hadc, Ladc, timeOn, timeOff, hoursOn FROM sumpData WHERE datetime > NOW() - INTERVAL %s HOUR"
+        query = "SELECT id, datetime, Hadc, Ladc, timeOn, timeOff, hoursOn FROM sumpData WHERE datetime > NOW() - INTERVAL %s HOUR ORDER BY datetime DESC;"
         cursor.execute(query, (hours,))
         rows = cursor.fetchall()
 
