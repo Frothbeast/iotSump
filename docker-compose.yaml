@@ -22,6 +22,8 @@ services:
       context: .
       args:
         - REACT_APP_SUMP_API_URL=${REACT_APP_SUMP_API_URL}
+        - API_PORT=${API_PORT}         
+        - COLLECTOR_PORT=${COLLECTOR_PORT}
     environment:
       - TZ=America/Toronto
       - API_PORT=${API_PORT}
