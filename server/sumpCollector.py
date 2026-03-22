@@ -70,9 +70,14 @@ def start_collector():
                             INSERT INTO sumpData (Hadc, Ladc, timeOn, timeOff, hoursOn, datetime) 
                             VALUES (%s, %s, %s, %s, %s, %s)
                         """
-                        cursor.execute(query, (payload_dict["Hadc"], payload_dict["Ladc"],
-                                               payload_dict["timeOn"], payload_dict["timeOff"],
-                                               payload_dict["hoursOn"]), now)
+                        cursor.execute(query, (
+                            payload_dict["Hadc"],
+                            payload_dict["Ladc"],
+                            payload_dict["timeOn"],
+                            payload_dict["timeOff"],
+                            payload_dict["hoursOn"],
+                            now
+                        ))
                         conn_db.commit()
                         cursor.close()
                         conn_db.close()
