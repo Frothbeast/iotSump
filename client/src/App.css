@@ -31,14 +31,7 @@ Global Fonts: @import or font-family declarations for the whole app.
   --border-radius: 1px;
   /* Control Bar needs */
   --controlBar-height: 15vw;
-  /* sumpTable needs */
-  --sumpTable__header-height: 12vw;
-  --sumpTable__headerRow-height: 2vw;
-  --sumpTable__header-font: 1.5vw;
-  --sumpTable__header-smallFont: 1vw;
-  --sumpTable__data-font: 1.8vw;
-  --sumpTable__header-backgroundColour: color-mix(in oklch, var(--menu-background), white 30%);
-  --sumpTable__header-colour: color-mix(in oklch, var(--menu-colour), white 30%);
+
 }
 
 @media (prefers-color-scheme: dark) {

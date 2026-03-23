@@ -26,13 +26,24 @@
   background-color: var(--menu-background);
   color: var(--menu-colour);
 }
-@container sumpContainer (max-width:844px) {
+
+  :root{
+  --sumpTable__headerRow-height: 5.5cqw;
+  --sumpTable__header-font: 4cqw;
+  --sumpTable__header-smallFont: 2.5cqw;
+  --sumpTable__data-font: 4cqw;
+  --sumpTable__header-height: calc(3 * var(--sumpTable__headerRow-height));
+  --sumpTable__header-backgroundColour: color-mix(in oklch, var(--menu-background), white 30%);
+  --sumpTable__header-colour: color-mix(in oklch, var(--menu-colour), white 30%);
+  }
+
+@container sumpContainer (min-width: 1200px) {
   .sumpTable {
-    --sumpTable__header-font: 12cqw;
-    --sumpTable__data-font: 15cqw;
-    --sumpTable__header-smallFont: 3cqw;
-    --sumpTable__header-height: 50cqw;
-    --sumpTable__headerRow-height: 6vw; 
+    --sumpTable__header-font: 3cqw;
+    --sumpTable__data-font: 3cqw;
+    --sumpTable__header-smallFont: 1.75cqw;
+    --sumpTable__headerRow-height: 4.5cqw; 
+    --sumpTable__header-height: calc(3 * var(--sumpTable__headerRow-height));
   }
   
 }
