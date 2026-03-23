@@ -84,7 +84,14 @@
   justify-content: space-around;
   width: 100%;
 }
-
+.myBUTTon {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  padding: 10px 20px;
+  background-color: var(--menu-background);
+  color: var(--menu-colour);
+}
 .chartSection {
   position: relative;
   margin: 0;
