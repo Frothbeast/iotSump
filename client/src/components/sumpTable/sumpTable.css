@@ -43,7 +43,7 @@
     --sumpTable__data-font: 3cqw;
     --sumpTable__header-smallFont: 1.75cqw;
     --sumpTable__headerRow-height: 4.5cqw; 
-    --sumpTable__header-height: calc(3 * var(--sumpTable__headerRow-height));
+    --sumpTable__header-height: calc(4 * var(--sumpTable__headerRow-height));
   }
   
 }
