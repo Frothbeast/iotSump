@@ -55,7 +55,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
         </div>
         <div className="buttonRow">
           <button className="sidebarButton myBUTTon" onClick={toggleSidebar}>
-            {isSidebarOpen ? "Close Chart" : "View Graph"}
+            {isSidebarOpen ? "Table" : "Graph"}
           </button>
           <button onClick={cl1pClick} className="cl1pButton myBUTTon">CL1P</button>
           <select className="selectedHours myBUTTon" value={selectedHours} onChange={(e) => onHoursChange(Number(e.target.value))}>
