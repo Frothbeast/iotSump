@@ -1,5 +1,5 @@
 services:
-  database:
+  shared_db_container:
     image: mysql:8.0
     container_name: sump_db_container
     restart: always
@@ -28,7 +28,7 @@ services:
       - TZ=America/Toronto
       - API_PORT=${API_PORT}
       - BIND_HOST=${BIND_HOST}
-      - DB_HOST=database
+      - DB_HOST=${DB_HOST}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
