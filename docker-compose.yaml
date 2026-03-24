@@ -7,8 +7,8 @@ services:
       - TZ=America/Toronto
       - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
       - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_USER=${SUMP_DB_USER}
-      - MYSQL_PASSWORD=${SUMP_DB_PASS}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASS}
     ports:
       - "${DB_HOST_PORT}:${DB_DOCKER_PORT}"
     volumes:
@@ -30,8 +30,8 @@ services:
       - BIND_HOST=${BIND_HOST}
       - DB_HOST=database
       - DB_NAME=${DB_NAME}
-      - DB_USER=${SUMP_DB_USER}
-      - DB_PASS=${SUMP_DB_PASS}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
       - STATIC_FOLDER=${STATIC_FOLDER}
     restart: always
     ports:
