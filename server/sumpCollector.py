@@ -13,8 +13,8 @@ last_packet_timestamp = None
 
 db_config = {
     'host': os.getenv('DB_HOST'),
-    'user': os.getenv('SUMP_DB_USER'),
-    'password': os.getenv('SUMP_DB_PASS'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASS'),
     'database': os.getenv('DB_NAME')
 }
 

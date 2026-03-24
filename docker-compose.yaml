@@ -1,7 +1,6 @@
 services:
   shared_db_container:
     image: mysql:8.0
-    container_name: sump_db_container
     restart: always
     environment:
       - TZ=America/Toronto
@@ -39,7 +38,7 @@ services:
       - "${COLLECTOR_HOST_PORT}:${COLLECTOR_PORT}"
     env_file: .env
     depends_on:
-      - database
+      - shared_db_container
     networks:
       - iot-network
 
