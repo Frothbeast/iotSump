@@ -43,8 +43,9 @@ services:
       - iot-network
 
 networks:
-  iot_network:
-    external: true
+  iot-network:
+    driver: bridge
+    name: iot-network
 
 volumes:
   sump_db_data:
