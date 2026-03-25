@@ -46,6 +46,7 @@
   "main": "index.js",
   "author": "",
   "license": "ISC",
+  "homepage": "/sump",
   "devDependencies": {
     "cross-env": "^7.0.3"
   }
