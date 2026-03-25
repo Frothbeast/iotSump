@@ -7,7 +7,7 @@ export function useSumpData(hours) {
         let interval;
 
         const fetchData = () => {
-            fetch(`/api/sumpData?hours=${hours}`)
+            fetch(`/sump/api/sumpData?hours=${hours}`)
                 .then(res => res.json())
                 .then(data => {
                     if (Array.isArray(data)) {
