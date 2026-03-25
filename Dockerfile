@@ -15,6 +15,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/ .
 
+COPY database/schema.sh ./database/schema.sh
+RUN chmod +x ./database/schema.sh
+
 COPY client/package*.json ./client/
 RUN cd client && npm install
 COPY client/ ./client/
