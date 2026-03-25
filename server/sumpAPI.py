@@ -25,8 +25,8 @@ location = os.getenv('LOCATION')
 cl1pToken = os.getenv('CL1P_TOKEN')
 cl1pURL = os.getenv('CL1P_URL')
 
-SUMP_USER = os.getenv('SUMP_DB_USER')
-SUMP_PASS = os.getenv('SUMP_DB_PASS')
+SUMP_USER = os.getenv('DB_USER')
+SUMP_PASS = os.getenv('DB_PASS')
 DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')
 

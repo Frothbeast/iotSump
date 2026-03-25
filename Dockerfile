@@ -15,6 +15,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/ .
 
+COPY database/schema.sh ./database/schema.sh
+RUN chmod +x ./database/schema.sh
+
 COPY client/package*.json ./client/
 RUN cd client && npm install
 COPY client/ ./client/
@@ -23,7 +26,7 @@ ARG REACT_APP_SUMP_API_URL
 ARG API_PORT
 ARG COLLECTOR_PORT
 
-ENV REACT_APP_API_URL=${REACT_APP_SUMP_API_URL}
+ENV REACT_APP_SUMP_API_URL=${REACT_APP_SUMP_API_URL}
 ENV API_PORT=${API_PORT}
 ENV COLLECTOR_PORT=${COLLECTOR_PORT}
 
