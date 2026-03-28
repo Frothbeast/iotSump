@@ -1,13 +1,13 @@
 #!/bin/sh
+SECONDS=0
 
-echo "Build complete. Initializing database..."
-echo "Please wait (typically 10-20 seconds)..."
+echo "Build complete. Starting database connection check..."
 
-until pg_isready -h "db_hostname" -p 5432 -U "user"; do
-  echo "Database is starting up - still waiting..."
-  sleep 2
+until pg_isready -h "$DB_HOSTNAME" -p 5432 -U "$DB_USER" > /dev/null 2>&1; do
+  echo "Waiting for Database ($DB_HOSTNAME)... ${SECONDS}s elapsed."
+  sleep 5
 done
 
-echo "--------------------------------------------------"
-echo "SUCCESS: Database is ready for connections!"
-echo "--------------------------------------------------"
+echo "-------------------------------------------"
+echo "SUCCESS: Database ready after ${SECONDS} seconds."
+echo "-------------------------------------------"

@@ -1,10 +1,11 @@
 services:
   app:
     build: .
+    env_file: .env
     depends_on:
-      db:
+      shared_db_container:
         condition: service_healthy
-    command: ["./wait-for-db.sh", "npm", "start"]
+    command: ["./scripts/waitForIt.sh", "npm", "start"]
 
   permission_fixer:
     image: alpine
