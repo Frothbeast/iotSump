@@ -25,6 +25,10 @@ COPY client/ ./client/
 
 RUN mkdir -p /app/client/build && cp -r /app/client/build/* /app/client/build/ || true
 
+RUN mkdir -p /app/scripts
+COPY ./scripts/waitForIt.sh /app/scripts/waitForIt.sh
+RUN chmod +x /app/scripts/waitForIt.sh
+
 ARG REACT_APP_SUMP_API_URL
 ARG API_PORT
 ARG COLLECTOR_PORT
