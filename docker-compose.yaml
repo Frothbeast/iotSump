@@ -1,4 +1,11 @@
 services:
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["./wait-for-db.sh", "npm", "start"]
+
   permission_fixer:
     image: alpine
     volumes:
