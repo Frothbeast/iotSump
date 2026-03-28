@@ -9,11 +9,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+ARG PUBLIC_URL
 
 COPY server/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/ .
+
+ent/build/ || true
 
 COPY database/schema.sh ./database/schema.sh
 RUN chmod +x ./database/schema.sh
@@ -21,6 +24,8 @@ RUN chmod +x ./database/schema.sh
 COPY client/package*.json ./client/
 RUN cd client && npm install
 COPY client/ ./client/
+
+RUN mkdir -p /app/client/build && cp -r /app/client/build/* /app/cli
 
 ARG REACT_APP_SUMP_API_URL
 ARG API_PORT

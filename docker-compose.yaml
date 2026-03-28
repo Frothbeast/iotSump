@@ -1,4 +1,10 @@
 services:
+  permission_fixer:
+    image: alpine
+    volumes:
+      - ../iotSump:/iotSump
+    command: >
+      sh -c "chmod +x /iotSump/database/schema.sh"
   shared_db_container:
     image: mysql:8.0
     restart: always
@@ -8,11 +14,14 @@ services:
       - MYSQL_DATABASE=${DB_NAME}
       - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PASS}
+    depends_on:
+      permission_fixer:
+        condition: service_completed_successfully
     ports:
       - "${DB_HOST_PORT}:${DB_DOCKER_PORT}"
     volumes:
       - sump_db_data:/var/lib/mysql
-      - ./database:/docker-entrypoint-initdb.d
+      - ./database/schema.sh:/docker-entrypoint-initdb.d/01-init-db.sh
     networks:
       - iot-network
 
@@ -20,6 +29,7 @@ services:
     build: 
       context: .
       args:
+        - PUBLIC_URL=/
         - REACT_APP_SUMP_API_URL=${REACT_APP_SUMP_API_URL}
         - API_PORT=${API_PORT}         
         - COLLECTOR_PORT=${COLLECTOR_PORT}
