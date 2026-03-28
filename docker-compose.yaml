@@ -1,12 +1,4 @@
 services:
-  app:
-    build: .
-    env_file: .env
-    depends_on:
-      shared_db_container:
-        condition: service_started
-    command: ["./scripts/waitForIt.sh", "npm", "start"]
-
   permission_fixer:
     image: alpine
     volumes:
@@ -32,6 +24,12 @@ services:
       - ./database/schema.sh:/docker-entrypoint-initdb.d/01-init-db.sh
     networks:
       - iot-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   sump-service:
     build: 
@@ -56,7 +54,8 @@ services:
       - "${COLLECTOR_HOST_PORT}:${COLLECTOR_PORT}"
     env_file: .env
     depends_on:
-      - shared_db_container
+      shared_db_container:
+        condition: service_healthy
     networks:
       - iot-network
 
