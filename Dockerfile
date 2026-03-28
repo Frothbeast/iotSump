@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/ .
 
-ent/build/ || true
+RUN mkdir -p /app/client/build && cp -r /app/client/build/* /app/client/build/ || true
 
 COPY database/schema.sh ./database/schema.sh
 RUN chmod +x ./database/schema.sh
