@@ -16,8 +16,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server/ .
 
-RUN mkdir -p /app/client/build && cp -r /app/client/build/* /app/client/build/ || true
-
 COPY database/schema.sh ./database/schema.sh
 RUN chmod +x ./database/schema.sh
 
@@ -25,7 +23,7 @@ COPY client/package*.json ./client/
 RUN cd client && npm install
 COPY client/ ./client/
 
-RUN mkdir -p /app/client/build && cp -r /app/client/build/* /app/cli
+RUN mkdir -p /app/client/build && cp -r /app/client/build/* /app/client/build/ || true
 
 ARG REACT_APP_SUMP_API_URL
 ARG API_PORT
