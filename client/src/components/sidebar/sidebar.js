@@ -74,7 +74,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             datasets={[{ label: "Duty Cycle", color: "lavender",
               data: sumpRecords.map(r => {
               const totalTime = Number(r.timeOn) + Number(r.timeOff);
-              return totalTime > 0 ? (Number(r.timeOn) / totalTime) : 0;
+              return totalTime > 0 ? (Number(r.timeOn) * 100 / totalTime) : 0;
               })
             }]}
             options={opt3}
