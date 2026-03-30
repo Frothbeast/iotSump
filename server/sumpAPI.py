@@ -9,6 +9,7 @@ import requests
 import urllib3
 import sys
 import time
+import pytz
 
 lastRunTime = None
 
@@ -180,7 +181,9 @@ def get_sump_data():
 
 @app.route('/api/time', methods=['GET'])
 def get_time():
-    return jsonify({"time": datetime.now().strftime("%I:%M %p")})
+    ontario_tz = pytz.timezone('America/Toronto')
+    now_ontario = datetime.now(ontario_tz)
+    return jsonify({"time": now_ontario.strftime("%I:%M %p")})
 
 
 @app.route('/', defaults={'path': ''})

@@ -21,10 +21,9 @@ export const calculateColumnStats = (sumpRecords) => {
 
   const lastRecord = sumpRecords[0];
 
-  const tsString = String(lastRecord?.datetime || "");
-  const parts = tsString.split(/[ T]/);
-  const lastDate = parts[0] || "";
-  const lastTime = parts[1] || "";
+  const dateObj = new Date(lastRecord.datetime);
+  const lastDate = dateObj.toLocaleDateString();
+  const lastTime = dateObj.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
 
   const lastTimeOn = parseFloat(lastRecord?.timeOn) || 0;
   const lastTimeOff = parseFloat(lastRecord?.timeOff) || 0;
