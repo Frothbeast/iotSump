@@ -131,7 +131,7 @@
  }
 
 .sumpTableCell2{
-  font-size: var(--sumpTable__data-font);
+  font-size: var(--sumpTable__header-smallFont);
   text-align: right;
 }
 .sumpTableCell2 {
