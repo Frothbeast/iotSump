@@ -134,11 +134,7 @@
   font-size: var(--sumpTable__header-smallFont);
   text-align: right;
 }
-.sumpTableCell2 {
-  font-size: var(--sumpTable__data-font);
-  width: 16.66%;
-  text-align: center;
-}
+
 .sumpTablePlaceholder{
   height: var(--sumpTable__header-height);
 }
