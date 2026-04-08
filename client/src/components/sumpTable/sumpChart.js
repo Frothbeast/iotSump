@@ -32,6 +32,7 @@ const SumpChart = ({ datasets, labels, options }) => {
           chartInstance.current.data.datasets[index].data = ds.data;
           chartInstance.current.data.datasets[index].label = ds.label;
           chartInstance.current.data.datasets[index].borderColor = ds.color;
+          chartInstance.current.data.datasets[index].yAxisID = ds.yAxisID;
         }
       });
 
@@ -54,12 +55,13 @@ const SumpChart = ({ datasets, labels, options }) => {
             label: ds.label,
             data: ds.data,
             borderColor: ds.color,
+            yAxisID: ds.yAxisID,
             backgroundColor: "black",
             borderWidth: 2,
             // pointRadius: 1,
             pointRadius: 0,
             pointHoverRadius: 5,
-            pointHitRadius: 10, // Added: Defines the invisible area around a point that triggers hover
+            pointHitRadius: 10,
             fill: false,
             tension: 0.4
           }))
