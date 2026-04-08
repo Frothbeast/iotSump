@@ -34,7 +34,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
         grid: { color: 'rgba(255, 255, 255, 0.42)' }
       },
-      y: { display: true, ticks: { color: 'grey' }, grace: '10%', grid: { color: 'rgba(255, 255, 255, 0.42)' } }
+      y: { display: true, ticks: { color: 'grey' }, grace: '10%', grid: { color: 'rgba(255, 255, 255, 0.42)' } },
+      y1: { display: true, position: 'right', ticks: { color: 'grey' }, grid:{drawOnChartArea: false,}}
     }
   });
 
@@ -52,8 +53,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           <SumpChart
             labels={labels}
             datasets={[
-              { label: "Low ADC", color: "lightblue", data: sumpRecords.map(r => r.Ladc) },
-              { label: "High ADC", color: "lightgreen", data: sumpRecords.map(r => r.Hadc) }
+              { label: "Low ADC", color: "lightblue", data: sumpRecords.map(r => r.Ladc), yAxisID: 'y', },
+              { label: "High ADC", color: "lightgreen", data: sumpRecords.map(r => r.Hadc), yAxisID: 'y1', }
             ]}
             options={opt1}
           />
@@ -62,8 +63,8 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           <SumpChart
             labels={labels}
             datasets={[
-              { label: "On Time", color: "pink", data: sumpRecords.map(r => r.timeOn) },
-              { label: "Off Time", color: "red", data: sumpRecords.map(r => r.timeOff) }
+              { label: "On Time", color: "pink", data: sumpRecords.map(r => r.timeOn), yAxisID: 'y', },
+              { label: "Off Time", color: "red", data: sumpRecords.map(r => r.timeOff), yAxisID: 'y1', }
             ]}
             options={opt2}
           />
