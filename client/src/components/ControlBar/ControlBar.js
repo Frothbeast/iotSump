@@ -83,7 +83,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
                 data: sumpRecords.map(r => r.Hadc),
               }
             ]}
-            options={getOptions(400, 1024)}
+            options={getOptions(200, 1024)}
           />
         </div>
         <div className="chartContainer">
@@ -102,7 +102,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
                 data: sumpRecords.map(r => r.timeOff),
               }
             ]}
-            options={getOptions(0, 3500)}
+            options={getOptions(0, 1000)}
           />
         </div>
         <div className="chartContainer">
@@ -115,7 +115,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
                 color: "lavender",
                 data: sumpRecords.map(r => {
                   const totalTime = Number(r.timeOn) + Number(r.timeOff);
-                  return totalTime > 0 ? (Number(r.timeOn) / totalTime) : 0;
+                  return totalTime > 0 ? 100*(Number(r.timeOn) / totalTime) : 0;
                 })
               }
             ]}
@@ -134,7 +134,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
                 return ( previous -current) / 60000;
               })}
             ]}
-            options={getOptions(0, 100)}
+            options={getOptions(0, 25)}
           />
         </div>
       </div>

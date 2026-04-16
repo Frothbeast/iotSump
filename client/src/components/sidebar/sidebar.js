@@ -10,7 +10,7 @@ ChartJS.register(...registerables, zoomPlugin);
 const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   const timeUnit = selectedHours <= 1 ? 'minute' : (selectedHours <= 48 ? 'hour' : 'day');
 
-  const createConfig = (unit) => ({
+  const createConfig = (unit, yMin, yMax) => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -34,15 +34,15 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         ticks: { maxTicksLimit: 8, autoSkip: true, color: 'grey' },
         grid: { color: 'rgba(255, 255, 255, 0.42)' }
       },
-      y: { display: true, ticks: { color: 'grey' }, grace: '10%', grid: { color: 'rgba(255, 255, 255, 0.42)' } },
+      y: { min: yMin, max: yMax, display: true, ticks: { color: 'grey' }, grace: '10%', grid: { color: 'rgba(255, 255, 255, 0.42)' } },
       y1: { display: true, position: 'right', ticks: { color: 'grey' }, grid:{drawOnChartArea: false,}}
     }
   });
 
-  const opt1 = useMemo(() => createConfig(timeUnit), [timeUnit]);
-  const opt2 = useMemo(() => createConfig(timeUnit), [timeUnit]);
-  const opt3 = useMemo(() => createConfig(timeUnit), [timeUnit]);
-  const opt4 = useMemo(() => createConfig(timeUnit), [timeUnit]);
+  const opt1 = useMemo(() => createConfig(timeUnit, 0, 1000), [timeUnit]);
+  const opt2 = useMemo(() => createConfig(timeUnit, 0 , 1000), [timeUnit]);
+  const opt3 = useMemo(() => createConfig(timeUnit, 0, 100), [timeUnit]);
+  const opt4 = useMemo(() => createConfig(timeUnit, 0, 20), [timeUnit]);
 
   const labels = sumpRecords.map(r => r.datetime);
 
@@ -54,7 +54,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             labels={labels}
             datasets={[
               { label: "Low ADC", color: "lightblue", data: sumpRecords.map(r => r.Ladc), yAxisID: 'y', },
-              { label: "High ADC", color: "lightgreen", data: sumpRecords.map(r => r.Hadc), yAxisID: 'y1', }
+              { label: "High ADC", color: "lightgreen", data: sumpRecords.map(r => r.Hadc), yAxisID: 'y', }
             ]}
             options={opt1}
           />
@@ -64,7 +64,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
             labels={labels}
             datasets={[
               { label: "On Time", color: "pink", data: sumpRecords.map(r => r.timeOn), yAxisID: 'y', },
-              { label: "Off Time", color: "red", data: sumpRecords.map(r => r.timeOff), yAxisID: 'y1', }
+              { label: "Off Time", color: "red", data: sumpRecords.map(r => r.timeOff), yAxisID: 'y', }
             ]}
             options={opt2}
           />
@@ -85,7 +85,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
           <SumpChart
             labels={labels}
             datasets={[{
-              label: "Interval", color: "cyan",
+              label: "Minutes between pumps", color: "cyan",
               data: sumpRecords.slice(1).map((r, i) => {
                 const current = new Date(r.datetime).getTime();
                 const previous = new Date(sumpRecords[i].datetime).getTime();
