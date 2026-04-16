@@ -35,7 +35,7 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
         grid: { color: 'rgba(255, 255, 255, 0.42)' }
       },
       y: { min: yMin, max: yMax, display: true, ticks: { color: 'grey' }, grace: '10%', grid: { color: 'rgba(255, 255, 255, 0.42)' } },
-      y1: { display: true, position: 'right', ticks: { color: 'grey' }, grid:{drawOnChartArea: false,}}
+      y1: { display: false, position: 'right', ticks: { color: 'grey' }, grid:{drawOnChartArea: false,}}
     }
   });
 
