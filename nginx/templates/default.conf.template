@@ -1,0 +1,17 @@
+server {
+    listen 80;
+
+    # This catches any request starting with /sump/api/
+    location /sump/ {
+    proxy_pass http://sump-service:${API_PORT}/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # This serves your React frontend
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+}
