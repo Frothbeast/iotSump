@@ -387,9 +387,13 @@ void main(void) {
                 if (wasOff) { lastOffTime = (currentOffTime == 0) ? 1 : currentOffTime; currentOffTime = 0; wasOff = 0; }
                 if (tenMinuteCounter >= 600) {
                     tenMinuteFlag = 1;
+                    // need to get low adc to show that it is underwater when overwhelmed
                     if (highSampleCount > 0) lastHatod = (uint16_t)(highSum / highSampleCount);
-                    save_to_buffer(lastHatod, 0, hoursSincePowerup, tenMinuteCounter, lastOffTime);
+                    lastLatod = low_val;
+                    save_to_buffer(lastHatod, lastLatod, hoursSincePowerup, tenMinuteCounter, 0);//lastOffTime);
                     tenMinuteCounter = 0;
+                    highSum = 0;
+                    highSampleCount = 0;
                 }
             } else {
                 if (backlightTime < 31) {
