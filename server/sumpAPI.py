@@ -183,7 +183,7 @@ def get_sump_data():
 def get_time():
     ontario_tz = pytz.timezone('America/Toronto')
     now_ontario = datetime.now(ontario_tz)
-    return jsonify({"time": now_ontario.strftime("%I:%M %p")})
+    return jsonify({"time": now_ontario.strftime("%I:%M %p").lower()})
 
 
 @app.route('/', defaults={'path': ''})
