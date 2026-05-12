@@ -40,9 +40,9 @@ const Sidebar = ({ isOpen, sumpRecords, selectedHours }) => {
   });
 
   const opt1 = useMemo(() => createConfig(timeUnit, 0, 1000), [timeUnit]);
-  const opt2 = useMemo(() => createConfig(timeUnit, 0 , 1000), [timeUnit]);
+  const opt2 = useMemo(() => createConfig(timeUnit, 0 , 2000), [timeUnit]);
   const opt3 = useMemo(() => createConfig(timeUnit, 0, 100), [timeUnit]);
-  const opt4 = useMemo(() => createConfig(timeUnit, 0, 20), [timeUnit]);
+  const opt4 = useMemo(() => createConfig(timeUnit, 0, 60), [timeUnit]);
 
   const labels = sumpRecords.map(r => r.datetime);
 

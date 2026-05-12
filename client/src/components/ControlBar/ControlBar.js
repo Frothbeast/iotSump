@@ -102,7 +102,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
                 data: sumpRecords.map(r => r.timeOff),
               }
             ]}
-            options={getOptions(0, 1000)}
+            options={getOptions(0, 2000)}
           />
         </div>
         <div className="chartContainer">
@@ -134,7 +134,7 @@ const ControlBar = ({ cl1pClick, selectedHours, onHoursChange, columnStats, sump
                 return ( previous -current) / 60000;
               })}
             ]}
-            options={getOptions(0, 25)}
+            options={getOptions(0, 60)}
           />
         </div>
       </div>
