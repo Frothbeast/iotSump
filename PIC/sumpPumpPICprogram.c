@@ -297,6 +297,19 @@ void process_esp_state_machine(void) {
     }
 }
 
+void send_to_esp_sync(uint8_t *data, uint8_t length) {
+    comm_mode = ESP_TX_MODE;
+    // Disable interrupts, send data, restore interrupts
+    uint8_t old_gie = INTCONbits.GIE;
+    INTCONbits.GIE = 0;
+    for(uint8_t i = 0; i < length; i++) {
+        TXREG = data[i];
+        while(!PIR1bits.TXIF);
+    }
+    INTCONbits.GIE = old_gie;
+    comm_mode = IDLE_MODE;
+}
+
 void main(void) {
     INTCON = 0x00; PIE1 = 0x00; RCSTA = 0x00;
     ADCON1 = 0x0D; ADCON2 = 0x92; TRISA = 0x07; TRISA3 = 0; TRIS_SSR = 0; 
