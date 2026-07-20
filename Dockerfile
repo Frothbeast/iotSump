@@ -20,7 +20,7 @@ COPY database/schema.sh ./database/schema.sh
 RUN chmod +x ./database/schema.sh
 
 COPY client/package*.json ./client/
-RUN cd client && npm install
+RUN cd client && npm ci
 COPY client/ ./client/
 
 RUN mkdir -p /app/client/build && cp -r /app/client/build/* /app/client/build/ || true
