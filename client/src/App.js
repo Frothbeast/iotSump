@@ -8,8 +8,8 @@ import './App.css';
 
 
 function App() {
-  const [selectedHours, setSelectedHours] = useState(24);
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedHours, setSelectedHours] = useState(8);
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
   const { sumpRecords, isLoading } = useSumpData(selectedHours);
 
   const columnStats = useMemo(() => calculateColumnStats(sumpRecords), [sumpRecords]);
